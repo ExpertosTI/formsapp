@@ -15,3 +15,6 @@ tenants/*/login_attempts.json
 .DS_Store
 .env
 .env.*
+
+# Credenciales por tenant (solo en servidor)
+tenants/*/tenant.json
