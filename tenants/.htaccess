@@ -1,0 +1,8 @@
+# Bloquear todo acceso web directo a carpetas de uploads y archivos sensibles en esta ruta
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

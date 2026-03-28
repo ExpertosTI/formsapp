@@ -1,0 +1,24 @@
+{
+    "name": "CUERO MACHO BOUTIQUE",
+    "slug": "cueromacho",
+    "admin_email": "cueromacho2@gmail.com",
+    "admin_password": "$2y$10$7MeqY3FSGwQKIkRVaw5xi.mP8aLsr.RmWWs8uni3VDJPLTpmPe4f.",
+    "admin_password_plain": "tRBjcTWYGJbs",
+    "logo": "",
+    "sender_name": "CUERO MACHO BOUTIQUE",
+    "colors": {
+        "primary": "#551b1e",
+        "accent": "#d22d35",
+        "bg": "#0f172a"
+    },
+    "created": "2026-03-02 20:10:42",
+    "active": true,
+    "sections": {
+        "documentos": true,
+        "datos_familiares": false,
+        "preparacion_academica": true,
+        "experiencia_laboral": true,
+        "informacion_general": true
+    },
+    "notification_emails": "cueromacho2@gmail.com"
+}

@@ -1,0 +1,18 @@
+# .htaccess — Apache fallback for multi-tenant routing (if using Apache)
+RewriteEngine On
+
+# Don't rewrite static files
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Don't rewrite existing directories
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Block access to sensitive directories
+RewriteRule ^tenants/ - [F,L]
+RewriteRule ^data/ - [F,L]
+RewriteRule ^config\.php$ - [F,L]
+
+# Route everything else through index.php
+RewriteRule ^ index.php [QSA,L]
