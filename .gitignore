@@ -1,20 +1,6 @@
-# Subidas y logs locales
-uploads/
-data/
-*.log
-
-# Datos por tenant (no pisar en git si contienen producción)
-tenants/*/uploads/
-tenants/*/submissions.json
-tenants/*/rate_limits.json
-tenants/*/login_attempts.json
-
-# Descomenta si no quieres versionar credenciales en tenant.json:
-# tenants/*/tenant.json
-
-.DS_Store
+node_modules/
+.next/
 .env
-.env.*
-
-# Credenciales por tenant (solo en servidor)
-tenants/*/tenant.json
+legacy/
+migration_backup/
+*.tar.gz

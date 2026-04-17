@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+legacy
+migration_backup
+ecofast_nextjs_code.tar.gz
+ecofast_full_migration.tar.gz
+data_migration_temp.json
+.npm_cache

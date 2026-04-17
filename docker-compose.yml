@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  ecofast-app:
+    image: ecofast:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - RenaceNet
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXT_PUBLIC_BASE_URL=https://forms.renace.tech
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.ecofast-secure.rule=Host(`forms.renace.tech`)"
+        - "traefik.http.routers.ecofast-secure.entrypoints=websecure"
+        - "traefik.http.routers.ecofast-secure.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.ecofast-app.loadbalancer.server.port=3000"
+        # Redirect HTTP to HTTPS
+        - "traefik.http.routers.ecofast-http.rule=Host(`forms.renace.tech`)"
+        - "traefik.http.routers.ecofast-http.entrypoints=web"
+        - "traefik.http.routers.ecofast-http.middlewares=https-redirect"
+        - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+    volumes:
+      - ecofast_uploads:/app/public/uploads
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  ecofast_uploads:
+    external: false
+
+networks:
+  RenaceNet:
+    external: true
