@@ -44,7 +44,7 @@ services:
         max-file: "3"
 
 volumes:
-  ecofast_uploads:
+  renace-forms_uploads:
     external: false
 
 networks:
