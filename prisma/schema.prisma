@@ -22,6 +22,7 @@ model Tenant {
   primaryColor      String       @default("#1b2055") @map("primary_color")
   accentColor       String       @default("#2dd17c") @map("accent_color")
   backgroundColor   String       @default("#0f172a") @map("background_color")
+  pin               String       @default("1234")
   active            Boolean      @default(true)
   createdAt         DateTime     @default(now()) @map("created_at")
   updatedAt         DateTime     @updatedAt @map("updated_at")
