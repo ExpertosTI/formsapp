@@ -37,6 +37,7 @@ services:
         - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
     volumes:
       - renace-forms_uploads:/app/public/uploads
+      - ./migration_backup:/app/migration_backup:ro
     logging:
       driver: "json-file"
       options:

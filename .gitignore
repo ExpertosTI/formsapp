@@ -1,6 +1,2 @@
-node_modules/
-.next/
-.env
 legacy/
-migration_backup/
 *.tar.gz
