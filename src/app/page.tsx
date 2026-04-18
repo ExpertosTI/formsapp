@@ -12,14 +12,12 @@ export default function Home() {
         </div>
 
         {/* Brand Name */}
-        <h1 className="mb-4 text-5xl font-black tracking-tighter sm:text-7xl">
-          <span className="text-emerald-400">R</span>
-          <span className="text-white">ENACE</span>
+        <h1 className="text-6xl font-black mb-6 tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40">
+          RENACE Forms
         </h1>
-        
-        <p className="max-w-xl mx-auto mb-12 text-lg leading-relaxed text-slate-400 sm:text-xl">
-          Soluciones tecnológicas de alto nivel para la gestión empresarial. 
-          <span className="block mt-2 text-emerald-400/80 font-medium italic">Nueva Generación — MVP Moderno</span>
+        <p className="text-xl text-neutral-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+          Gestión inteligente de formularios para el ecosistema <span className="text-white font-semibold">RENACE</span>. 
+          Seguro, rápido y diseñado para la excelencia.
         </p>
 
         {/* Features Grid */}

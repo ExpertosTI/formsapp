@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  ecofast-app:
-    image: ecofast:latest
+  renace-forms-app:
+    image: renace-forms:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -26,17 +26,17 @@ services:
           memory: 512M
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.ecofast-secure.rule=Host(`forms.renace.tech`)"
-        - "traefik.http.routers.ecofast-secure.entrypoints=websecure"
-        - "traefik.http.routers.ecofast-secure.tls.certresolver=letsencryptresolver"
-        - "traefik.http.services.ecofast-app.loadbalancer.server.port=3000"
+        - "traefik.http.routers.renace-forms-secure.rule=Host(`forms.renace.tech`)"
+        - "traefik.http.routers.renace-forms-secure.entrypoints=websecure"
+        - "traefik.http.routers.renace-forms-secure.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.renace-forms-app.loadbalancer.server.port=3000"
         # Redirect HTTP to HTTPS
-        - "traefik.http.routers.ecofast-http.rule=Host(`forms.renace.tech`)"
-        - "traefik.http.routers.ecofast-http.entrypoints=web"
-        - "traefik.http.routers.ecofast-http.middlewares=https-redirect"
+        - "traefik.http.routers.renace-forms-http.rule=Host(`forms.renace.tech`)"
+        - "traefik.http.routers.renace-forms-http.entrypoints=web"
+        - "traefik.http.routers.renace-forms-http.middlewares=https-redirect"
         - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
     volumes:
-      - ecofast_uploads:/app/public/uploads
+      - renace-forms_uploads:/app/public/uploads
     logging:
       driver: "json-file"
       options:

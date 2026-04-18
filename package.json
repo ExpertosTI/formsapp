@@ -1,6 +1,6 @@
 {
-  "name": "ecofast-modern",
-  "version": "0.1.0",
+  "name": "renace-forms",
+    "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
