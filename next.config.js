@@ -4,7 +4,7 @@ const TENANT_SLUGS = ["cacorojo", "cueromacho", "ecofast", "jhosuaretro", "lagra
 const nextConfig = {
   output: "standalone",
   outputFileTracingExcludes: {
-    "*": ["./public/uploads/**"],
+    "*": ["./public/uploads/**", "./.env", "./.env.*"],
   },
   outputFileTracingIncludes: {
     "/*": ["./node_modules/.prisma/client/**/*", "./node_modules/@prisma/client/**/*"],

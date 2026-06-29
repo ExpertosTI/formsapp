@@ -1,6 +1,6 @@
 version: '3.8'
 
-# network_mode: host → Postgres en 127.0.0.1:5432 (sin host.docker.internal)
+# network_mode: host → Postgres en 127.0.0.1:5432
 
 services:
   renace-forms-app:
@@ -15,6 +15,11 @@ services:
       - PORT=${RENACE_FORMS_PORT:-3010}
       - HOSTNAME=0.0.0.0
       - DATABASE_URL=${DATABASE_URL_MIGRATE}
+      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-https://forms.renace.tech}
+      - SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL}
+      - SUPER_ADMIN_PASSWORD=${SUPER_ADMIN_PASSWORD}
+      - ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET}
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY:-}
     volumes:
       - renace-forms_uploads:/app/public/uploads
       - /var/www/ecofast/tenants:/var/www/ecofast/tenants:ro

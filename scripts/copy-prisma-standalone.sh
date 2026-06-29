@@ -19,4 +19,8 @@ rm -rf "$STANDALONE/node_modules/.prisma/client"
 cp -r "$ROOT/node_modules/.prisma/client" "$STANDALONE/node_modules/.prisma/"
 cp -r "$ROOT/node_modules/@prisma/client" "$STANDALONE/node_modules/@prisma/"
 
-echo "    OK: Prisma engine en standalone"
+# .env no debe ir en la imagen (EACCES + secretos)
+rm -f "$STANDALONE/.env" "$STANDALONE"/.env.* 2>/dev/null || true
+
+ENGINES=$(find "$STANDALONE/node_modules/.prisma/client" -name 'libquery_engine-*' 2>/dev/null | wc -l)
+echo "    OK: Prisma engine en standalone ($ENGINES binaries)"
