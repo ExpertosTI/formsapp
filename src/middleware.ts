@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AUTH_COOKIE } from "@/lib/auth";
+import { AUTH_COOKIE } from "@/lib/auth-constants";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
