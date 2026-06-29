@@ -1,15 +1,14 @@
 version: '3.8'
 
-# forms.renace.tech — docker compose (este servidor NO usa Swarm)
-# Imagen: talentolink:latest (construida por scripts/deploy-only.sh)
+# forms.renace.tech — Nginx en el host hace proxy a 127.0.0.1:3010
 
 services:
   renace-forms-app:
     image: talentolink:latest
     container_name: renace-forms-app
     restart: unless-stopped
-    networks:
-      - traefik_net
+    ports:
+      - "127.0.0.1:${RENACE_FORMS_PORT:-3010}:3000"
     env_file:
       - .env
     environment:
@@ -22,18 +21,6 @@ services:
       - ECOFAST_BASE=/var/www/ecofast
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=${RENACE_DOCKER_NETWORK}"
-      - "traefik.http.routers.renace-forms-secure.rule=Host(`forms.renace.tech`)"
-      - "traefik.http.routers.renace-forms-secure.entrypoints=websecure"
-      - "traefik.http.routers.renace-forms-secure.tls.certresolver=letsencryptresolver"
-      - "traefik.http.routers.renace-forms-secure.service=renace-forms-app"
-      - "traefik.http.routers.renace-forms-http.rule=Host(`forms.renace.tech`)"
-      - "traefik.http.routers.renace-forms-http.entrypoints=web"
-      - "traefik.http.routers.renace-forms-http.middlewares=https-redirect"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.services.renace-forms-app.loadbalancer.server.port=3000"
     volumes:
       - renace-forms_uploads:/app/public/uploads
       - /var/www/ecofast/tenants:/var/www/ecofast/tenants:ro
@@ -45,8 +32,3 @@ services:
 
 volumes:
   renace-forms_uploads:
-
-networks:
-  traefik_net:
-    name: ${RENACE_DOCKER_NETWORK}
-    external: true

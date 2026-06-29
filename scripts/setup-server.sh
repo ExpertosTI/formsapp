@@ -7,8 +7,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 # shellcheck source=scripts/lib/docker-compose.sh
 source "$ROOT/scripts/lib/docker-compose.sh"
-# shellcheck source=scripts/lib/detect-docker-network.sh
-source "$ROOT/scripts/lib/detect-docker-network.sh"
 
 if [ ! -f .env ]; then
   echo "==> Crea .env primero: cp .env.example .env && nano .env"
@@ -59,19 +57,10 @@ DATABASE_URL="$MIGRATE_URL" node migration_backup/migrate_sql.js
 echo "==> Construyendo imagen Docker..."
 docker build -t talentolink:latest .
 
-RENACE_DOCKER_NETWORK=$(detect_docker_network) || {
-  echo "ERROR: no se encontró red Docker. Define RENACE_DOCKER_NETWORK en .env"
-  exit 1
-}
-export RENACE_DOCKER_NETWORK
-
-echo "==> Desplegando forms.renace.tech (red=$RENACE_DOCKER_NETWORK)..."
-SWARM_STATE=$(docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null || echo "inactive")
-if [ "$SWARM_STATE" = "active" ]; then
-  docker stack deploy -c docker-compose.yml renace-forms
-else
-  docker_compose up -d --remove-orphans
-fi
+export RENACE_FORMS_PORT="${RENACE_FORMS_PORT:-3010}"
+echo "==> Desplegando forms.renace.tech (puerto ${RENACE_FORMS_PORT})..."
+docker_compose up -d --remove-orphans
+[ -x "$ROOT/scripts/setup-nginx.sh" ] && "$ROOT/scripts/setup-nginx.sh"
 
 echo ""
 echo "==> Listo: https://forms.renace.tech/admin"

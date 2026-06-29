@@ -20,9 +20,11 @@ done
 flat=$(find "$DEST" -type f 2>/dev/null | wc -l)
 echo "==> public/uploads: $flat archivos (gitignored, no va en Docker)"
 
-VOL_PATH=$(docker volume inspect renace-forms_renace-forms_uploads --format '{{.Mountpoint}}' 2>/dev/null \
-  || docker volume inspect renace-forms_uploads --format '{{.Mountpoint}}' 2>/dev/null \
-  || true)
+VOL_NAME=$(docker volume ls -q 2>/dev/null | grep 'renace-forms_uploads' | head -1 || true)
+VOL_PATH=""
+if [ -n "$VOL_NAME" ]; then
+  VOL_PATH=$(docker volume inspect "$VOL_NAME" --format '{{.Mountpoint}}' 2>/dev/null || true)
+fi
 
 if [ -n "$VOL_PATH" ] && [ -d "$VOL_PATH" ]; then
   echo "==> Copiando al volumen Docker: $VOL_PATH"

@@ -23,6 +23,7 @@ DATABASE_URL_MIGRATE=postgresql://\${DB_USER}:\${enc}@127.0.0.1:5432/\${DB_NAME}
 SUPER_ADMIN_EMAIL=admin@renace.tech
 SUPER_ADMIN_PASSWORD=CatagceAdmin2026!
 ADMIN_SESSION_SECRET=tl_8f3a2c91e7b4d605a8e2f1b9c0d7e6a5f4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8
+RENACE_FORMS_PORT=3010
 \`;
 fs.writeFileSync(".env", env, { mode: 0o600 });
 console.log("==> .env creado — BD dedicada: " + DB_NAME);
