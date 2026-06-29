@@ -9,7 +9,7 @@ services:
     container_name: renace-forms-app
     restart: unless-stopped
     networks:
-      - RenaceNet
+      - traefik_net
     env_file:
       - .env
     environment:
@@ -24,7 +24,7 @@ services:
       - "host.docker.internal:host-gateway"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=RenaceNet"
+      - "traefik.docker.network=${RENACE_DOCKER_NETWORK}"
       - "traefik.http.routers.renace-forms-secure.rule=Host(`forms.renace.tech`)"
       - "traefik.http.routers.renace-forms-secure.entrypoints=websecure"
       - "traefik.http.routers.renace-forms-secure.tls.certresolver=letsencryptresolver"
@@ -47,5 +47,6 @@ volumes:
   renace-forms_uploads:
 
 networks:
-  RenaceNet:
+  traefik_net:
+    name: ${RENACE_DOCKER_NETWORK}
     external: true
