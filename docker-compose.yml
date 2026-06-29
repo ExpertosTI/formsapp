@@ -1,20 +1,25 @@
 version: '3.8'
 
 services:
-  renace-forms-app:
-    image: renace-forms:latest
+  talentolink-app:
+    image: talentolink:latest
     build:
       context: .
       dockerfile: Dockerfile
     networks:
       - RenaceNet
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - NEXT_PUBLIC_BASE_URL=https://forms.renace.tech
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
+      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-https://catagce.renace.tech}
+      - SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL}
+      - SUPER_ADMIN_PASSWORD=${SUPER_ADMIN_PASSWORD}
+      - ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
     deploy:
       mode: replicated
       replicas: 1
@@ -26,17 +31,16 @@ services:
           memory: 512M
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.renace-forms-secure.rule=Host(`forms.renace.tech`)"
-        - "traefik.http.routers.renace-forms-secure.entrypoints=websecure"
-        - "traefik.http.routers.renace-forms-secure.tls.certresolver=letsencryptresolver"
-        - "traefik.http.services.renace-forms-app.loadbalancer.server.port=3000"
-        # Redirect HTTP to HTTPS
-        - "traefik.http.routers.renace-forms-http.rule=Host(`forms.renace.tech`)"
-        - "traefik.http.routers.renace-forms-http.entrypoints=web"
-        - "traefik.http.routers.renace-forms-http.middlewares=https-redirect"
+        - "traefik.http.routers.talentolink-secure.rule=Host(`catagce.renace.tech`)"
+        - "traefik.http.routers.talentolink-secure.entrypoints=websecure"
+        - "traefik.http.routers.talentolink-secure.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.talentolink-app.loadbalancer.server.port=3000"
+        - "traefik.http.routers.talentolink-http.rule=Host(`catagce.renace.tech`)"
+        - "traefik.http.routers.talentolink-http.entrypoints=web"
+        - "traefik.http.routers.talentolink-http.middlewares=https-redirect"
         - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
     volumes:
-      - renace-forms_uploads:/app/public/uploads
+      - talentolink_uploads:/app/public/uploads
       - ./migration_backup:/app/migration_backup:ro
     logging:
       driver: "json-file"
@@ -45,7 +49,7 @@ services:
         max-file: "3"
 
 volumes:
-  renace-forms_uploads:
+  talentolink_uploads:
     external: false
 
 networks:

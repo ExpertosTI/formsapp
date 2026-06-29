@@ -1,2 +1,9 @@
 legacy/
 *.tar.gz
+node_modules/
+.npm_cache/
+.next/
+.env
+.env.local
+.env.production
+public/uploads/

@@ -31,15 +31,21 @@ async function migrate() {
             
             // 1. Create/Update Tenant
             const tenantId = generateID();
+            const settings = JSON.stringify({
+                sections: t.config.sections ?? {},
+                notification_emails: t.config.notification_emails ?? '',
+            });
+
             const tenantQuery = `
                 INSERT INTO tenants (
                     id, slug, name, admin_email, admin_password, logo, sender_name, 
-                    primary_color, accent_color, background_color, pin, active, created_at, updated_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+                    primary_color, accent_color, background_color, pin, settings, active, created_at, updated_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb, $13, $14, NOW())
                 ON CONFLICT (slug) DO UPDATE SET 
                     name = EXCLUDED.name,
                     admin_email = EXCLUDED.admin_email,
-                    active = EXCLUDED.active
+                    active = EXCLUDED.active,
+                    settings = EXCLUDED.settings
                 RETURNING id;
             `;
 
@@ -54,7 +60,8 @@ async function migrate() {
                 t.config.colors?.primary || '#1b2055',
                 t.config.colors?.accent || '#2dd17c',
                 t.config.colors?.bg || '#0f172a',
-                '1234', // Default PIN
+                '1234',
+                settings,
                 t.config.active ?? true,
                 t.config.created ? new Date(t.config.created) : new Date()
             ];

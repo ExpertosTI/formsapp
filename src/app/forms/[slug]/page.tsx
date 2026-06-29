@@ -1,9 +1,9 @@
 import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { Building2, Info, CheckCircle2 } from 'lucide-react';
 
-const prisma = new PrismaClient();
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -22,7 +22,7 @@ export async function generateMetadata(
 
   if (!tenant) return { title: 'Empresa no encontrada' };
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://forms.renace.tech';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://catagce.renace.tech';
   const logoUrl = tenant.logo ? `${baseUrl}/${tenant.logo}` : `${baseUrl}/favicon.ico`;
 
   return {

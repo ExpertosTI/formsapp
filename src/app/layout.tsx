@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RENACE Forms — Plataforma de Formularios",
-  description: "Soluciones tecnológicas para la gestión empresarial.",
+  title: "TalentoLink — catagce.renace.tech",
+  description: "Plataforma multi-empresa para formularios de empleo y gestión de candidatos.",
 };
 
 export default function RootLayout({
