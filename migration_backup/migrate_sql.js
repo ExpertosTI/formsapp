@@ -86,7 +86,7 @@ async function migrate() {
                         s.id || generateID(),
                         dbTenantId,
                         JSON.stringify(s.datos || {}),
-                        JSON.stringify(s.archivos || []),
+                        JSON.stringify(s.archivos || {}),
                         s.estado || 'nuevo',
                         s.fecha ? new Date(s.fecha) : new Date()
                     ];
