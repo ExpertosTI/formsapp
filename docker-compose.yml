@@ -19,6 +19,8 @@ services:
       - SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL}
       - SUPER_ADMIN_PASSWORD=${SUPER_ADMIN_PASSWORD}
       - ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET}
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY:-}
+      - ECOFAST_BASE=/var/www/ecofast
       - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
@@ -46,6 +48,7 @@ services:
         - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
     volumes:
       - renace-forms_uploads:/app/public/uploads
+      - /var/www/ecofast/tenants:/var/www/ecofast/tenants:ro
       - ./migration_backup:/app/migration_backup:ro
     logging:
       driver: "json-file"

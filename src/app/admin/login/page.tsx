@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Network, Lock } from "lucide-react";
+import { Sparkles, Lock, ArrowRight } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -13,17 +13,12 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     const form = new FormData(e.currentTarget);
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: form.get("email"),
-        password: form.get("password"),
-      }),
+      body: JSON.stringify({ email: form.get("email"), password: form.get("password") }),
     });
-
     if (res.ok) {
       router.push("/admin");
       router.refresh();
@@ -35,49 +30,30 @@ export default function AdminLoginPage() {
 
   return (
     <main className="flex items-center justify-center min-h-screen p-6">
-      <div className="w-full max-w-md p-8 glass-card">
-        <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-emerald-500">
-            <Network className="w-8 h-8 text-white" />
+      <div className="absolute w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none" />
+      <div className="relative w-full max-w-md">
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center w-14 h-14 mb-4 rounded-2xl bg-gradient-to-br from-teal-400 to-indigo-500 shadow-glow">
+            <Sparkles className="w-7 h-7 text-[var(--tl-bg)]" />
           </div>
-          <h1 className="text-2xl font-black text-white">TalentoLink</h1>
-          <p className="text-sm text-slate-400">forms.renace.tech</p>
+          <h1 className="text-2xl font-bold text-white">TalentoLink</h1>
+          <p className="mt-1 text-sm text-slate-500">forms.renace.tech · Super Admin</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="tl-card p-8 space-y-5">
           <div>
-            <label className="block mb-1 text-xs font-bold uppercase tracking-wider text-slate-500">
-              Correo
-            </label>
-            <input
-              name="email"
-              type="email"
-              required
-              className="w-full px-4 py-3 text-sm text-white border rounded-xl bg-white/5 border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-              placeholder="admin@renace.tech"
-            />
+            <label className="tl-label">Correo</label>
+            <input name="email" type="email" required className="tl-input" defaultValue="admin@renace.tech" />
           </div>
           <div>
-            <label className="block mb-1 text-xs font-bold uppercase tracking-wider text-slate-500">
-              Contraseña
-            </label>
-            <input
-              name="password"
-              type="password"
-              required
-              className="w-full px-4 py-3 text-sm text-white border rounded-xl bg-white/5 border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-            />
+            <label className="tl-label">Contraseña</label>
+            <input name="password" type="password" required className="tl-input" />
           </div>
-
           {error && <p className="text-sm text-red-400">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center justify-center w-full gap-2 py-3 font-bold text-white rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-600 hover:opacity-90 disabled:opacity-50"
-          >
+          <button type="submit" disabled={loading} className="tl-btn-primary w-full py-3">
             <Lock className="w-4 h-4" />
-            {loading ? "Entrando..." : "Iniciar sesión"}
+            {loading ? "Entrando…" : "Iniciar sesión"}
+            <ArrowRight className="w-4 h-4" />
           </button>
         </form>
       </div>

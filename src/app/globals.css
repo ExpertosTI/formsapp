@@ -3,42 +3,101 @@
 @tailwind utilities;
 
 :root {
-  --primary: #1b2055;
-  --accent: #2dd17c;
-  --bg: #0f172a;
+  --tl-bg: #070b14;
+  --tl-surface: #0f1628;
+  --tl-elevated: #151f35;
+  --tl-border: rgba(148, 163, 184, 0.12);
+  --tl-text: #e8edf7;
+  --tl-muted: #8b9cb8;
+  --tl-accent: #5eead4;
+  --tl-accent-2: #818cf8;
+  --tl-warm: #fbbf24;
 }
 
-body {
-  color: #e2e8f0;
-  background: var(--bg);
-  min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply antialiased;
+    color: var(--tl-text);
+    background: var(--tl-bg);
+    min-height: 100vh;
+  }
 }
 
 body::before {
-  content: '';
+  content: "";
   position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(27, 32, 85, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(45, 209, 124, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(27, 32, 85, 0.08) 0%, transparent 70%);
-  z-index: -1;
-  animation: bgFloat 20s ease-in-out infinite;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(129, 140, 248, 0.18), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(94, 234, 212, 0.1), transparent),
+    radial-gradient(ellipse 50% 30% at 50% 100%, rgba(99, 102, 241, 0.08), transparent),
+    var(--tl-bg);
 }
 
-@keyframes bgFloat {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(-2%, 1%); }
-  66% { transform: translate(1%, -2%); }
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
 @layer components {
-  .glass-card {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  .tl-card {
+    @apply rounded-2xl border border-white/[0.08] backdrop-blur-xl shadow-xl shadow-black/20;
+    background: rgba(15, 22, 40, 0.85);
   }
+  .tl-card-hover {
+    @apply tl-card transition-all duration-300 hover:border-white/[0.14] hover:-translate-y-0.5;
+    background: rgba(15, 22, 40, 0.85);
+  }
+  .tl-card-hover:hover {
+    background: rgba(21, 31, 53, 0.92);
+  }
+  .tl-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl hover:opacity-95 active:scale-[0.98] transition-all shadow-lg shadow-indigo-500/20;
+    color: var(--tl-bg);
+    background: linear-gradient(to right, var(--tl-accent), var(--tl-accent-2));
+  }
+  .tl-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:text-white transition-all;
+    color: var(--tl-muted);
+  }
+  .tl-input {
+    @apply w-full px-4 py-3 text-sm text-white rounded-xl border border-white/10 bg-white/[0.04] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400/40;
+  }
+  .tl-label {
+    @apply block mb-1.5 text-[11px] font-bold uppercase tracking-wider;
+    color: var(--tl-muted);
+  }
+  .tl-badge-ai {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/25;
+  }
+  .glass-card {
+    @apply tl-card;
+  }
+}
+
+@keyframes tl-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-tl-float {
+  animation: tl-float 5s ease-in-out infinite;
+}
+
+@keyframes tl-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.tl-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  background-size: 200% 100%;
+  animation: tl-shimmer 2.5s infinite;
 }

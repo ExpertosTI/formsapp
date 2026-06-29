@@ -32,26 +32,21 @@ export function CandidateCard({
   const initials = getCandidateInitials(fields);
 
   return (
-    <Link
-      href={`/admin/candidatos/${id}`}
-      className="block p-5 transition-all glass-card hover:bg-white/10 hover:-translate-y-0.5 group"
-    >
+    <Link href={`/admin/candidatos/${id}`} className="block p-5 tl-card-hover group">
       <div className="flex gap-4">
-        <div className="flex items-center justify-center flex-shrink-0 w-14 h-14 text-lg font-bold rounded-full bg-gradient-to-br from-indigo-600/40 to-emerald-500/40 text-white border border-white/10">
+        <div className="flex items-center justify-center flex-shrink-0 w-14 h-14 text-lg font-bold rounded-2xl bg-gradient-to-br from-teal-500/30 to-indigo-500/30 text-white border border-white/10">
           {initials}
         </div>
-
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+              <h3 className="text-base font-semibold text-white group-hover:text-teal-300 transition-colors">
                 {name}
               </h3>
               <p className="text-sm text-slate-400 truncate">{headline}</p>
             </div>
-            <ChevronRight className="flex-shrink-0 w-5 h-5 mt-1 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+            <ChevronRight className="flex-shrink-0 w-5 h-5 mt-1 text-slate-600 group-hover:text-teal-400" />
           </div>
-
           <div className="flex flex-wrap items-center gap-2 mt-3">
             <span
               className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${STATUS_COLORS[status] ?? STATUS_COLORS.nuevo}`}
@@ -63,8 +58,7 @@ export function CandidateCard({
               {tenantName}
             </span>
           </div>
-
-          <div className="flex flex-wrap gap-4 mt-3 text-xs text-slate-500">
+          <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
             {fields.correo && (
               <span className="flex items-center gap-1">
                 <Mail className="w-3 h-3" />
@@ -77,16 +71,9 @@ export function CandidateCard({
                 {String(fields.celular)}
               </span>
             )}
-            {fields.direccion && (
-              <span className="flex items-center gap-1 truncate max-w-xs">
-                <MapPin className="w-3 h-3" />
-                {String(fields.direccion)}
-              </span>
-            )}
           </div>
-
-          <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-600">
-            {tenantSlug} · {createdAt.toLocaleDateString("es-DO", { dateStyle: "medium" })}
+          <p className="mt-2 text-[10px] text-slate-600">
+            {createdAt.toLocaleDateString("es-DO", { dateStyle: "medium" })}
           </p>
         </div>
       </div>

@@ -1,16 +1,18 @@
 import { prisma } from "@/lib/prisma";
-import { Users, Building2, FileText, TrendingUp } from "lucide-react";
+import { dashboardHeuristicInsights } from "@/lib/ai";
+import { Users, Building2, Sparkles, TrendingUp, Clock } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const [tenantCount, submissionCount, recentSubmissions, tenants] =
+  const [tenantCount, submissionCount, newCount, recentSubmissions, tenants] =
     await Promise.all([
       prisma.tenant.count(),
       prisma.submission.count(),
+      prisma.submission.count({ where: { status: "nuevo" } }),
       prisma.submission.findMany({
-        take: 8,
+        take: 6,
         orderBy: { createdAt: "desc" },
         include: { tenant: { select: { name: true, slug: true } } },
       }),
@@ -20,35 +22,58 @@ export default async function AdminDashboard() {
       }),
     ]);
 
+  const topTenant = [...tenants].sort(
+    (a, b) => b._count.submissions - a._count.submissions
+  )[0];
+
+  const aiTips = dashboardHeuristicInsights({
+    totalCandidates: submissionCount,
+    newCount,
+    tenantCount,
+    topTenant: topTenant?.name,
+  });
+
   const stats = [
-    { label: "Empresas activas", value: tenantCount, icon: Building2, color: "text-indigo-400" },
-    { label: "Candidatos totales", value: submissionCount, icon: Users, color: "text-emerald-400" },
+    { label: "Empresas", value: tenantCount, icon: Building2, hue: "from-indigo-500/20 to-indigo-500/5 text-indigo-300" },
+    { label: "Candidatos", value: submissionCount, icon: Users, hue: "from-teal-500/20 to-teal-500/5 text-teal-300" },
+    { label: "Nuevos", value: newCount, icon: Clock, hue: "from-amber-500/20 to-amber-500/5 text-amber-300" },
     {
-      label: "Promedio por empresa",
+      label: "Promedio / empresa",
       value: tenantCount ? Math.round(submissionCount / tenantCount) : 0,
       icon: TrendingUp,
-      color: "text-amber-400",
+      hue: "from-violet-500/20 to-violet-500/5 text-violet-300",
     },
-    { label: "Solicitudes", value: submissionCount, icon: FileText, color: "text-purple-400" },
   ];
 
   return (
     <div className="max-w-6xl">
       <header className="mb-8">
-        <h1 className="text-3xl font-black text-white">Panel de Control</h1>
-        <p className="mt-1 text-slate-400">
-          Vista global de todas las empresas y candidatos. Los datos nunca se eliminan.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight text-white">Inicio</h1>
+        <p className="mt-1 text-slate-400">Vista global · datos sincronizados en tiempo real</p>
       </header>
+
+      <div className="tl-card p-5 mb-8 border-violet-500/15 bg-gradient-to-r from-violet-500/[0.07] to-teal-500/[0.05]">
+        <div className="flex items-start gap-3">
+          <Sparkles className="w-5 h-5 mt-0.5 text-violet-300 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-white">Asistente TalentoLink</p>
+            <ul className="mt-2 space-y-1">
+              {aiTips.map((tip, i) => (
+                <li key={i} className="text-sm text-slate-400">
+                  {tip}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-4 mb-10 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <div key={stat.label} className="p-5 glass-card">
-            <div className="flex items-center justify-between mb-3">
-              <stat.icon className={`w-5 h-5 ${stat.color}`} />
-            </div>
-            <p className="text-3xl font-black text-white">{stat.value}</p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
+          <div key={stat.label} className={`tl-card p-5 bg-gradient-to-br ${stat.hue.split(" ").slice(0, 2).join(" ")}`}>
+            <stat.icon className={`w-5 h-5 mb-3 ${stat.hue.split(" ").pop()}`} />
+            <p className="text-3xl font-bold text-white">{stat.value}</p>
+            <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               {stat.label}
             </p>
           </div>
@@ -58,37 +83,43 @@ export default async function AdminDashboard() {
       <div className="grid gap-8 lg:grid-cols-2">
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white">Empresas</h2>
-            <Link href="/admin/empresas" className="text-xs font-bold text-emerald-400 hover:underline">
-              Ver todas
+            <h2 className="font-bold text-white">Empresas</h2>
+            <Link href="/admin/empresas" className="text-xs font-semibold text-teal-400 hover:underline">
+              Ver todas →
             </Link>
           </div>
           <div className="space-y-2">
             {tenants.map((tenant) => (
-              <div
+              <Link
                 key={tenant.id}
-                className="flex items-center justify-between p-4 glass-card"
+                href={`/admin/candidatos?empresa=${tenant.slug}`}
+                className="flex items-center justify-between p-4 tl-card-hover"
               >
-                <div>
-                  <p className="font-semibold text-white">{tenant.name}</p>
-                  <p className="text-xs text-slate-500">{tenant.slug}</p>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex items-center justify-center w-10 h-10 text-sm font-bold text-white rounded-xl"
+                    style={{
+                      background: `linear-gradient(135deg, ${tenant.primaryColor}, ${tenant.accentColor})`,
+                    }}
+                  >
+                    {tenant.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">{tenant.name}</p>
+                    <p className="text-xs text-slate-500">{tenant.slug}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-emerald-400">
-                    {tenant._count.submissions}
-                  </p>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500">candidatos</p>
-                </div>
-              </div>
+                <span className="text-lg font-bold text-teal-400">{tenant._count.submissions}</span>
+              </Link>
             ))}
           </div>
         </section>
 
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white">Actividad reciente</h2>
-            <Link href="/admin/candidatos" className="text-xs font-bold text-emerald-400 hover:underline">
-              Ver candidatos
+            <h2 className="font-bold text-white">Recientes</h2>
+            <Link href="/admin/candidatos" className="text-xs font-semibold text-teal-400 hover:underline">
+              Ver todos →
             </Link>
           </div>
           <div className="space-y-2">
@@ -99,10 +130,10 @@ export default async function AdminDashboard() {
                 <Link
                   key={sub.id}
                   href={`/admin/candidatos/${sub.id}`}
-                  className="flex items-center justify-between p-4 transition-colors glass-card hover:bg-white/10"
+                  className="flex items-center justify-between p-4 tl-card-hover"
                 >
                   <div>
-                    <p className="font-semibold text-white">{name}</p>
+                    <p className="font-medium text-white">{name}</p>
                     <p className="text-xs text-slate-500">{sub.tenant.name}</p>
                   </div>
                   <p className="text-xs text-slate-500">
@@ -111,11 +142,6 @@ export default async function AdminDashboard() {
                 </Link>
               );
             })}
-            {recentSubmissions.length === 0 && (
-              <p className="p-8 text-sm text-center text-slate-500 glass-card">
-                No hay candidatos aún. Ejecuta la migración de datos.
-              </p>
-            )}
           </div>
         </section>
       </div>

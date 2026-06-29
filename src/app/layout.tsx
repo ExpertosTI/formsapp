@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+});
 
 export const metadata: Metadata = {
-  title: "TalentoLink — forms.renace.tech",
-  description: "Plataforma multi-empresa para formularios de empleo y gestión de candidatos.",
+  title: "TalentoLink — Inteligencia para tu talento",
+  description:
+    "Plataforma multi-empresa con IA ligera para gestión de candidatos y formularios de empleo.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body className={`${inter.className} bg-[#0f172a] text-slate-200 antialiased`}>
-        {children}
-      </body>
+      <body className={`${jakarta.variable} font-sans antialiased`}>{children}</body>
     </html>
   );
 }

@@ -8,12 +8,20 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-jakarta)", "system-ui", "sans-serif"],
+      },
       colors: {
-        brand: {
-          primary: "#1b2055",
-          accent: "#2dd17c",
-          surface: "#0f172a",
+        tl: {
+          bg: "#070b14",
+          surface: "#0f1628",
+          accent: "#5eead4",
+          violet: "#818cf8",
         },
+      },
+      boxShadow: {
+        glow: "0 0 40px -10px rgba(94, 234, 212, 0.35)",
+        "glow-violet": "0 0 40px -10px rgba(129, 140, 248, 0.35)",
       },
     },
   },

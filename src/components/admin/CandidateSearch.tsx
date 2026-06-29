@@ -46,7 +46,7 @@ export function CandidateSearch({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar por nombre, cédula, correo, experiencia..."
-          className="w-full py-3 pl-11 pr-4 text-sm text-white border rounded-xl bg-white/5 border-white/10 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+          className="w-full py-3 pl-11 pr-4 text-sm tl-input"
         />
       </div>
 
@@ -54,7 +54,7 @@ export function CandidateSearch({
         <select
           value={empresa}
           onChange={(e) => setEmpresa(e.target.value)}
-          className="px-4 py-2 text-sm text-white border rounded-lg bg-white/5 border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+          className="px-4 py-2 text-sm tl-input !w-auto"
         >
           <option value="">Todas las empresas</option>
           {tenants.map((t) => (
@@ -67,7 +67,7 @@ export function CandidateSearch({
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value)}
-          className="px-4 py-2 text-sm text-white border rounded-lg bg-white/5 border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+          className="px-4 py-2 text-sm tl-input !w-auto"
         >
           <option value="">Todos los estados</option>
           {Object.entries(STATUS_LABELS).map(([value, label]) => (
@@ -79,7 +79,7 @@ export function CandidateSearch({
 
         <button
           type="submit"
-          className="px-5 py-2 text-sm font-bold text-white rounded-lg bg-emerald-600 hover:bg-emerald-500"
+          className="tl-btn-primary"
         >
           Buscar
         </button>
