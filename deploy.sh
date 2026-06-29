@@ -39,7 +39,7 @@ cmd_sync() {
 }
 
 cmd_db() {
-    DB_NAME="${DB_NAME:-renace_forms}"
+    DB_NAME="${DB_NAME:-forms_talentolink}"
     DB_USER="${DB_USER:-renaceforms}"
     if [ -z "${DB_PASS:-}" ]; then
         echo "Error: export DB_PASS antes de ./deploy.sh db"
@@ -61,6 +61,12 @@ cmd_db() {
 
     if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1; then
         sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+        echo "==> Base de datos nueva '$DB_NAME' creada (vacía, aislada de Odoo)."
+    else
+        # shellcheck source=scripts/db-safety.sh
+        source "$ROOT/scripts/db-safety.sh"
+        assert_safe_database "$DB_NAME"
+        echo "==> Base de datos '$DB_NAME' ya existe y no es Odoo — OK."
     fi
 
   sudo -u postgres psql -v ON_ERROR_STOP=1 <<EOSQL

@@ -34,14 +34,20 @@ if ! systemctl is-active --quiet postgresql 2>/dev/null; then
   exit 1
 fi
 
+# shellcheck source=scripts/db-safety.sh
+source "$ROOT/scripts/db-safety.sh"
+DB_CHECK_NAME=$(db_name_from_url "$MIGRATE_URL")
+assert_safe_database "$DB_CHECK_NAME"
+echo "==> BD verificada: $DB_CHECK_NAME (no es Odoo)"
+
 echo "==> Instalando dependencias..."
 npm ci
 
 echo "==> Generando Prisma client..."
 npx prisma generate
 
-echo "==> Aplicando schema (TCP 127.0.0.1, sin borrar datos)..."
-DATABASE_URL="$MIGRATE_URL" npx prisma db push
+echo "==> Aplicando schema (BD dedicada, sin borrar datos)..."
+DATABASE_URL="$MIGRATE_URL" npx prisma db push --skip-generate
 
 echo "==> Migrando datos Ecofast (upsert, no borra)..."
 DATABASE_URL="$MIGRATE_URL" node migration_backup/migrate_sql.js
