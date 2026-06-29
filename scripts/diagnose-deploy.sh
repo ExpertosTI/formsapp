@@ -11,7 +11,8 @@ docker ps -a --filter name=renace-forms-app --format 'table {{.Names}}\t{{.Statu
 
 echo ""
 echo "=== App directa (127.0.0.1:${PORT}) ==="
-curl -sI "http://127.0.0.1:${PORT}/admin" 2>/dev/null | head -10 || echo "  no responde en :${PORT}"
+curl -s "http://127.0.0.1:${PORT}/api/health" 2>/dev/null || echo "  health check falló"
+curl -sI "http://127.0.0.1:${PORT}/forms/cueromacho" 2>/dev/null | head -8 || echo "  no responde"
 
 echo ""
 echo "=== Nginx vhost ==="

@@ -6,6 +6,10 @@ const nextConfig = {
   outputFileTracingExcludes: {
     "*": ["./public/uploads/**"],
   },
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/.prisma/client/**/*", "./node_modules/@prisma/client/**/*"],
+    "/api/**/*": ["./node_modules/.prisma/client/**/*", "./node_modules/@prisma/client/**/*"],
+  },
   async redirects() {
     return TENANT_SLUGS.map((slug) => ({
       source: `/${slug}`,

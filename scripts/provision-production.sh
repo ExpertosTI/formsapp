@@ -18,7 +18,7 @@ const DB_USER = "${DB_USER}";
 const DB_PASS = "${DB_PASS}";
 const enc = encodeURIComponent(DB_PASS);
 const env = \`NEXT_PUBLIC_BASE_URL=https://forms.renace.tech
-DATABASE_URL=postgresql://\${DB_USER}:\${enc}@host.docker.internal:5432/\${DB_NAME}
+DATABASE_URL=postgresql://\${DB_USER}:\${enc}@127.0.0.1:5432/\${DB_NAME}
 DATABASE_URL_MIGRATE=postgresql://\${DB_USER}:\${enc}@127.0.0.1:5432/\${DB_NAME}
 SUPER_ADMIN_EMAIL=admin@renace.tech
 SUPER_ADMIN_PASSWORD=CatagceAdmin2026!

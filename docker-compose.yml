@@ -1,20 +1,20 @@
 version: '3.8'
 
-# forms.renace.tech — Nginx en el host hace proxy a 127.0.0.1:3010
+# network_mode: host → Postgres en 127.0.0.1:5432 (sin host.docker.internal)
 
 services:
   renace-forms-app:
     image: talentolink:latest
     container_name: renace-forms-app
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:${RENACE_FORMS_PORT:-3010}:3000"
+    network_mode: host
     env_file:
       - .env
     environment:
       - ECOFAST_BASE=/var/www/ecofast
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - PORT=${RENACE_FORMS_PORT:-3010}
+      - HOSTNAME=0.0.0.0
+      - DATABASE_URL=${DATABASE_URL_MIGRATE}
     volumes:
       - renace-forms_uploads:/app/public/uploads
       - /var/www/ecofast/tenants:/var/www/ecofast/tenants:ro

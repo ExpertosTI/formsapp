@@ -14,6 +14,12 @@ set +a
 
 export RENACE_FORMS_PORT="${RENACE_FORMS_PORT:-3010}"
 
+[ -x "$ROOT/scripts/fix-env-database-url.sh" ] && "$ROOT/scripts/fix-env-database-url.sh" "$ROOT/.env"
+set -a
+# shellcheck disable=SC1091
+source .env
+set +a
+
 mkdir -p public/uploads
 if [ "$(find public/uploads -type f 2>/dev/null | wc -l)" -gt 0 ]; then
   echo "==> Limpiando public/uploads antes del build ($(find public/uploads -type f | wc -l) archivos → volumen después)"
@@ -26,6 +32,7 @@ npx prisma generate
 
 echo "==> 2/5 next build..."
 npm run build
+"$ROOT/scripts/copy-prisma-standalone.sh"
 
 if [ ! -f .next/standalone/server.js ]; then
   echo "ERROR: .next/standalone/server.js no existe."

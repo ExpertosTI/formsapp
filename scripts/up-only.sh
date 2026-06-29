@@ -8,6 +8,7 @@ cd "$ROOT"
 source "$ROOT/scripts/lib/docker-compose.sh"
 
 [ -f .env ] || { echo "ERROR: falta .env"; exit 1; }
+[ -x "$ROOT/scripts/fix-env-database-url.sh" ] && "$ROOT/scripts/fix-env-database-url.sh" "$ROOT/.env"
 set -a
 # shellcheck disable=SC1091
 source .env
