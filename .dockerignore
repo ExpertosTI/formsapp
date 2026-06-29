@@ -2,8 +2,13 @@ node_modules
 .next
 .git
 legacy
-migration_backup
-ecofast_nextjs_code.tar.gz
-ecofast_full_migration.tar.gz
-data_migration_temp.json
 .npm_cache
+uploads
+
+# Archivos grandes — se montan por volumen, no van en la imagen
+public/uploads
+migration_backup/data_migration_temp.json
+
+*.tar.gz
+.env
+.env.*

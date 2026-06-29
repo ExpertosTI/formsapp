@@ -1,33 +1,36 @@
 #!/usr/bin/env bash
-# Sincroniza todos los uploads de ecofast → public/uploads + volumen Docker
+# Sincroniza uploads a public/uploads Y al volumen Docker (no en la imagen)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ECOFAST="${ECOFAST_BASE:-/var/www/ecofast}"
 DEST="${ROOT}/public/uploads"
-COUNT=0
 
 mkdir -p "$DEST"
 
-echo "==> Sincronizando archivos desde ${ECOFAST}/tenants/*/uploads"
+echo "==> Sincronizando desde ${ECOFAST}/tenants/*/uploads"
 for dir in "$ECOFAST"/tenants/*/uploads; do
   [ -d "$dir" ] || continue
   tenant=$(basename "$(dirname "$dir")")
-  n=$(find "$dir" -type f | wc -l)
+  n=$(find "$dir" -type f 2>/dev/null | wc -l)
   echo "   $tenant: $n archivos"
-  # cp -n no sobrescribe
   find "$dir" -type f -exec cp -n {} "$DEST/" \; 2>/dev/null || true
-  COUNT=$((COUNT + n))
 done
 
-flat=$(find "$DEST" -type f | wc -l)
-echo "==> Total en public/uploads: $flat archivos"
+flat=$(find "$DEST" -type f 2>/dev/null | wc -l)
+echo "==> public/uploads: $flat archivos (gitignored, no va en Docker)"
 
-# Copiar al volumen Docker si el contenedor existe
-VOL_PATH=$(docker volume inspect renace-forms_uploads --format '{{.Mountpoint}}' 2>/dev/null || true)
+VOL_PATH=$(docker volume inspect renace-forms_renace-forms_uploads --format '{{.Mountpoint}}' 2>/dev/null \
+  || docker volume inspect renace-forms_uploads --format '{{.Mountpoint}}' 2>/dev/null \
+  || true)
+
 if [ -n "$VOL_PATH" ] && [ -d "$VOL_PATH" ]; then
-  echo "==> Copiando al volumen Docker renace-forms_uploads"
-  cp -rn "$DEST"/* "$VOL_PATH/" 2>/dev/null || true
+  echo "==> Copiando al volumen Docker: $VOL_PATH"
+  find "$DEST" -type f -exec cp -n {} "$VOL_PATH/" \; 2>/dev/null || true
+  vol_count=$(find "$VOL_PATH" -type f 2>/dev/null | wc -l)
+  echo "==> Volumen Docker: $vol_count archivos"
+else
+  echo "==> Volumen Docker aún no creado (se llenará al desplegar el stack)"
 fi
 
-echo "==> Sync de uploads completado"
+echo "==> Sync completado"
