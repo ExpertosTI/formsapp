@@ -61,12 +61,12 @@ cmd_db() {
 
     if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1; then
         sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
-        echo "==> Base de datos nueva '$DB_NAME' creada (vacía, aislada de Odoo)."
+        echo "==> Base de datos nueva '$DB_NAME' creada (vacía, dedicada a TalentoLink)."
     else
         # shellcheck source=scripts/db-safety.sh
         source "$ROOT/scripts/db-safety.sh"
         assert_safe_database "$DB_NAME"
-        echo "==> Base de datos '$DB_NAME' ya existe y no es Odoo — OK."
+        echo "==> Base de datos '$DB_NAME' verificada."
     fi
 
   sudo -u postgres psql -v ON_ERROR_STOP=1 <<EOSQL

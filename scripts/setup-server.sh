@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Ejecutar EN EL SERVIDOR en /opt/talentolink
-# Solo despliega forms.renace.tech — NO toca Odoo ni otros stacks.
+# Solo despliega forms.renace.tech — no toca renace_forms (legacy) ni Odoo.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -38,7 +38,7 @@ fi
 source "$ROOT/scripts/db-safety.sh"
 DB_CHECK_NAME=$(db_name_from_url "$MIGRATE_URL")
 assert_safe_database "$DB_CHECK_NAME"
-echo "==> BD verificada: $DB_CHECK_NAME (no es Odoo)"
+echo "==> BD verificada: $DB_CHECK_NAME"
 
 echo "==> Instalando dependencias..."
 npm ci
