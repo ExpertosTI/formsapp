@@ -3,6 +3,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=scripts/lib/docker-compose.sh
+source "$ROOT/scripts/lib/docker-compose.sh"
 
 [ -f .env ] || { echo "ERROR: falta .env"; exit 1; }
 
@@ -34,11 +36,11 @@ echo "==> 4/4 desplegar (swarm=$SWARM_STATE)..."
 if [ "$SWARM_STATE" = "active" ]; then
   docker stack deploy -c docker-compose.yml renace-forms
 else
-  docker compose up -d --remove-orphans
+  docker_compose up -d --remove-orphans
 fi
 
 [ -x "$ROOT/scripts/sync-uploads.sh" ] && "$ROOT/scripts/sync-uploads.sh"
 
 echo ""
 echo "==> https://forms.renace.tech/admin"
-docker compose ps 2>/dev/null || true
+docker_compose ps 2>/dev/null || true

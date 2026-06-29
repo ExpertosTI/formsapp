@@ -5,6 +5,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=scripts/lib/docker-compose.sh
+source "$ROOT/scripts/lib/docker-compose.sh"
 
 if [ ! -f .env ]; then
   echo "==> Crea .env primero: cp .env.example .env && nano .env"
@@ -60,7 +62,7 @@ SWARM_STATE=$(docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null || ec
 if [ "$SWARM_STATE" = "active" ]; then
   docker stack deploy -c docker-compose.yml renace-forms
 else
-  docker compose up -d --remove-orphans
+  docker_compose up -d --remove-orphans
 fi
 
 echo ""
