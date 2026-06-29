@@ -1,15 +1,8 @@
 #!/usr/bin/env bash
 # deploy.sh — TalentoLink @ forms.renace.tech
 #
-# IMPORTANTE: Solo afecta /opt/talentolink y el stack renace-forms.
-# No toca Odoo (/opt/odoo) ni otros stacks Docker.
-#
-# En el SERVIDOR (primera vez — PostgreSQL):
-#   export DB_PASS='clave_postgres'
-#   ./deploy.sh db
-#
-# En el SERVIDOR (después de git pull):
-#   ./scripts/setup-server.sh
+# Producción (todo en uno):
+#   ./scripts/provision-production.sh
 #
 set -euo pipefail
 
@@ -17,7 +10,7 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
 usage() {
-    sed -n '1,18p' "$0"
+    sed -n '1,12p' "$0"
     echo ""
     echo "Comandos: sync | db | help"
     exit 1
@@ -42,51 +35,48 @@ cmd_sync() {
         "${ROOT}/" \
         "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
-    echo "==> Listo. En el servidor: ./scripts/setup-server.sh"
+    echo "==> Listo. En el servidor: ./scripts/provision-production.sh"
 }
 
 cmd_db() {
     DB_NAME="${DB_NAME:-renace_forms}"
     DB_USER="${DB_USER:-renaceforms}"
     if [ -z "${DB_PASS:-}" ]; then
-        echo "Error: export DB_PASS='...' antes de ./deploy.sh db"
+        echo "Error: export DB_PASS antes de ./deploy.sh db"
         exit 1
     fi
 
     if ! systemctl is-active --quiet postgresql 2>/dev/null; then
-        echo "Error: PostgreSQL no está activo. No lo reiniciamos automáticamente (Odoo puede usarlo)."
-        echo "  Verifica: systemctl status postgresql"
+        echo "Error: PostgreSQL no está activo."
         exit 1
     fi
 
-    echo "==> Creando usuario/BD para forms.renace.tech (no toca bases de Odoo)..."
+    echo "==> Configurando PostgreSQL para forms.renace.tech..."
 
-    sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 || \
-        sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
-
-    sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 || \
-        sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
-
-    sudo -u postgres psql -d "$DB_NAME" -c "
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;
-"
-
-    echo ""
-    echo "Base de datos '$DB_NAME' lista. Copia esto en tu .env:"
-    echo ""
-    echo "DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@host.docker.internal:5432/${DB_NAME}"
-    echo "DATABASE_URL_MIGRATE=postgresql://${DB_USER}:${DB_PASS}@localhost/${DB_NAME}?host=/var/run/postgresql"
-    echo ""
-    if pg_isready -h 127.0.0.1 -p 5432 -q 2>/dev/null; then
-        echo "Postgres responde en TCP 127.0.0.1:5432 (OK para Docker)."
+    if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1; then
+        sudo -u postgres psql -c "ALTER USER $DB_USER WITH PASSWORD '$DB_PASS';"
     else
-        echo "AVISO: Postgres no escucha en TCP 127.0.0.1:5432."
-        echo "  Las migraciones usan socket (DATABASE_URL_MIGRATE)."
-        echo "  Para Docker, habilita listen_addresses='localhost' en postgresql.conf"
-        echo "  y reinicia Postgres en una ventana de mantenimiento (afecta Odoo brevemente)."
+        sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
     fi
+
+    if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1; then
+        sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+    fi
+
+  sudo -u postgres psql -v ON_ERROR_STOP=1 <<EOSQL
+ALTER DATABASE ${DB_NAME} OWNER TO ${DB_USER};
+GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
+\c ${DB_NAME}
+GRANT ALL ON SCHEMA public TO ${DB_USER};
+GRANT CREATE ON SCHEMA public TO ${DB_USER};
+ALTER SCHEMA public OWNER TO ${DB_USER};
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${DB_USER};
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${DB_USER};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${DB_USER};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${DB_USER};
+EOSQL
+
+    echo "==> Base de datos '$DB_NAME' lista con permisos completos."
 }
 
 case "${1:-help}" in
