@@ -11,13 +11,13 @@ export default async function EmpresasPage() {
   });
 
   return (
-    <div className="max-w-5xl">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Empresas</h1>
-        <p className="mt-1 text-slate-400">{tenants.length} organizaciones · datos sincronizados</p>
+    <div className="max-w-5xl mx-auto">
+      <header className="tl-page-header">
+        <h1 className="tl-page-title">Empresas</h1>
+        <p className="tl-page-sub">{tenants.length} organizaciones · datos sincronizados</p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 tl-stagger">
         {tenants.map((tenant) => (
           <div key={tenant.id} className="p-6 tl-card-hover">
             <div className="flex items-start justify-between">
@@ -49,17 +49,17 @@ export default async function EmpresasPage() {
                 <span className="truncate">{tenant.adminEmail}</span>
               </span>
             </div>
-            <div className="flex gap-2 mt-5">
+            <div className="flex flex-col gap-2 mt-5 sm:flex-row">
               <Link
                 href={`/admin/candidatos?empresa=${tenant.slug}`}
-                className="flex-1 py-2 text-xs font-semibold text-center text-white rounded-xl bg-white/[0.06] hover:bg-white/10"
+                className="flex-1 py-2.5 text-xs font-semibold text-center text-white rounded-xl bg-white/[0.06] hover:bg-white/10 transition-all duration-300"
               >
                 Candidatos
               </Link>
               <Link
                 href={`/forms/${tenant.slug}`}
                 target="_blank"
-                className="flex items-center justify-center gap-1 px-4 py-2 text-xs font-semibold rounded-xl bg-teal-500/15 text-teal-300 hover:bg-teal-500/25"
+                className="flex items-center justify-center gap-1 px-4 py-2.5 text-xs font-semibold rounded-xl bg-teal-500/15 text-teal-300 hover:bg-teal-500/25 transition-all duration-300"
               >
                 <ExternalLink className="w-3 h-3" />
                 Form

@@ -47,10 +47,10 @@ export default async function CandidatoDetailPage({ params }: Props) {
   const slug = submission.tenant.slug;
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-5xl mx-auto">
       <Link
         href="/admin/candidatos"
-        className="inline-flex items-center gap-2 mb-6 text-sm text-slate-400 hover:text-teal-300"
+        className="inline-flex items-center gap-2 mb-6 text-sm text-slate-400 hover:text-teal-300 transition-colors duration-300"
       >
         <ArrowLeft className="w-4 h-4" />
         Candidatos

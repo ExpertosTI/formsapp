@@ -32,20 +32,20 @@ export function CandidateCard({
   const initials = getCandidateInitials(fields);
 
   return (
-    <Link href={`/admin/candidatos/${id}`} className="block p-5 tl-card-hover group">
-      <div className="flex gap-4">
-        <div className="flex items-center justify-center flex-shrink-0 w-14 h-14 text-lg font-bold rounded-2xl bg-gradient-to-br from-teal-500/30 to-indigo-500/30 text-white border border-white/10">
+    <Link href={`/admin/candidatos/${id}`} className="block p-4 sm:p-5 tl-card-hover group">
+      <div className="flex gap-3 sm:gap-4">
+        <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 text-base sm:text-lg font-bold rounded-2xl bg-gradient-to-br from-teal-500/30 to-indigo-500/30 text-white border border-white/10 transition-transform duration-300 group-hover:scale-105">
           {initials}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-base font-semibold text-white group-hover:text-teal-300 transition-colors">
+          <div className="flex items-start justify-between gap-2 sm:gap-3">
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-white truncate group-hover:text-teal-300 transition-colors duration-300">
                 {name}
               </h3>
               <p className="text-sm text-slate-400 truncate">{headline}</p>
             </div>
-            <ChevronRight className="flex-shrink-0 w-5 h-5 mt-1 text-slate-600 group-hover:text-teal-400" />
+            <ChevronRight className="flex-shrink-0 w-5 h-5 mt-1 text-slate-600 transition-all duration-300 group-hover:text-teal-400 group-hover:translate-x-0.5" />
           </div>
           <div className="flex flex-wrap items-center gap-2 mt-3">
             <span

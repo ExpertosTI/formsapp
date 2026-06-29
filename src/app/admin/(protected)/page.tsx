@@ -46,13 +46,13 @@ export default async function AdminDashboard() {
   ];
 
   return (
-    <div className="max-w-6xl">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-white">Inicio</h1>
-        <p className="mt-1 text-slate-400">Vista global · datos sincronizados en tiempo real</p>
+    <div className="max-w-6xl mx-auto">
+      <header className="tl-page-header">
+        <h1 className="tl-page-title">Inicio</h1>
+        <p className="tl-page-sub">Vista global · datos sincronizados en tiempo real</p>
       </header>
 
-      <div className="tl-card p-5 mb-8 border-violet-500/15 bg-gradient-to-r from-violet-500/[0.07] to-teal-500/[0.05]">
+      <div className="tl-card p-5 mb-6 sm:mb-8 border-violet-500/15 bg-gradient-to-r from-violet-500/[0.07] to-teal-500/[0.05]">
         <div className="flex items-start gap-3">
           <Sparkles className="w-5 h-5 mt-0.5 text-violet-300 shrink-0" />
           <div>
@@ -68,9 +68,9 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 mb-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 mb-8 sm:mb-10 sm:grid-cols-2 lg:grid-cols-4 tl-stagger">
         {stats.map((stat) => (
-          <div key={stat.label} className={`tl-card p-5 bg-gradient-to-br ${stat.hue.split(" ").slice(0, 2).join(" ")}`}>
+          <div key={stat.label} className={`tl-card-hover p-5 bg-gradient-to-br ${stat.hue.split(" ").slice(0, 2).join(" ")}`}>
             <stat.icon className={`w-5 h-5 mb-3 ${stat.hue.split(" ").pop()}`} />
             <p className="text-3xl font-bold text-white">{stat.value}</p>
             <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
@@ -84,7 +84,7 @@ export default async function AdminDashboard() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-white">Empresas</h2>
-            <Link href="/admin/empresas" className="text-xs font-semibold text-teal-400 hover:underline">
+            <Link href="/admin/empresas" className="tl-link">
               Ver todas →
             </Link>
           </div>
@@ -118,7 +118,7 @@ export default async function AdminDashboard() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-white">Recientes</h2>
-            <Link href="/admin/candidatos" className="text-xs font-semibold text-teal-400 hover:underline">
+            <Link href="/admin/candidatos" className="tl-link">
               Ver todos →
             </Link>
           </div>

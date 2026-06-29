@@ -9,6 +9,7 @@ import {
   LogOut,
   Sparkles,
   ExternalLink,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,67 +19,108 @@ const nav = [
   { href: "/admin/empresas", label: "Empresas", icon: Building2 },
 ];
 
-export function AdminSidebar() {
+interface Props {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function AdminSidebar({ mobileOpen = false, onClose }: Props) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex flex-col w-64 min-h-screen border-r border-white/[0.06] bg-[var(--tl-surface)]/60 backdrop-blur-xl">
-      <div className="p-5 border-b border-white/[0.06]">
-        <Link href="/admin" className="flex items-center gap-3 group">
-          <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-teal-400 to-indigo-500 shadow-glow">
-            <Sparkles className="w-5 h-5 text-[var(--tl-bg)]" />
-          </div>
-          <div>
-            <p className="text-sm font-bold tracking-tight text-white group-hover:text-teal-300 transition-colors">
-              TalentoLink
-            </p>
-            <p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
-              forms.renace.tech
-            </p>
-          </div>
-        </Link>
-      </div>
+    <>
+      {mobileOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-tl-fade-in lg:hidden"
+          onClick={onClose}
+          aria-label="Cerrar menú"
+        />
+      )}
 
-      <nav className="flex-1 p-3 space-y-1">
-        {nav.map(({ href, label, icon: Icon, exact }) => {
-          const active = exact ? pathname === href : pathname.startsWith(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all",
-                active
-                  ? "bg-white/[0.08] text-white border border-white/10 shadow-sm"
-                  : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
-              )}
-            >
-              <Icon className={cn("w-4 h-4", active && "text-teal-400")} />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="p-3 space-y-1 border-t border-white/[0.06]">
-        <Link
-          href="/"
-          target="_blank"
-          className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-500 rounded-xl hover:text-white hover:bg-white/[0.04]"
-        >
-          <ExternalLink className="w-4 h-4" />
-          Sitio público
-        </Link>
-        <form action="/api/auth/logout" method="POST">
+      <aside
+        className={cn(
+          "flex flex-col w-64 shrink-0 border-r border-white/[0.06] bg-[var(--tl-surface)]/95 backdrop-blur-xl",
+          "lg:relative lg:min-h-screen lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 min-h-[100dvh] transition-transform ease-[cubic-bezier(0.22,1,0.36,1)]",
+          mobileOpen ? "translate-x-0 shadow-2xl shadow-black/50" : "-translate-x-full lg:translate-x-0"
+        )}
+        style={{ transitionDuration: "350ms" }}
+      >
+        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+          <Link href="/admin" className="flex items-center gap-3 group" onClick={onClose}>
+            <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-teal-400 to-indigo-500 shadow-glow transition-transform duration-300 group-hover:scale-105">
+              <Sparkles className="w-5 h-5 text-[var(--tl-bg)]" />
+            </div>
+            <div>
+              <p className="text-sm font-bold tracking-tight text-white group-hover:text-teal-300 transition-colors duration-300">
+                TalentoLink
+              </p>
+              <p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
+                forms.renace.tech
+              </p>
+            </div>
+          </Link>
           <button
-            type="submit"
-            className="flex items-center w-full gap-3 px-3 py-2.5 text-sm text-slate-500 rounded-xl hover:text-white hover:bg-white/[0.04]"
+            type="button"
+            onClick={onClose}
+            className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors lg:hidden"
+            aria-label="Cerrar menú"
           >
-            <LogOut className="w-4 h-4" />
-            Salir
+            <X className="w-5 h-5" />
           </button>
-        </form>
-      </div>
-    </aside>
+        </div>
+
+        <nav className="flex-1 p-3 space-y-1">
+          {nav.map(({ href, label, icon: Icon, exact }) => {
+            const active = exact ? pathname === href : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={onClose}
+                className={cn(
+                  "relative flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl",
+                  "transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                  active
+                    ? "text-white bg-white/[0.08] border border-white/10 shadow-sm"
+                    : "text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
+                )}
+              >
+                {active && (
+                  <span
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-teal-400 to-indigo-400"
+                    aria-hidden
+                  />
+                )}
+                <Icon className={cn("w-4 h-4 shrink-0 transition-colors duration-300", active && "text-teal-400")} />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-3 space-y-1 border-t border-white/[0.06]">
+          <Link
+            href="/"
+            target="_blank"
+            onClick={onClose}
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-500 rounded-xl hover:text-white hover:bg-white/[0.04] transition-all duration-300"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Sitio público
+          </Link>
+          <form action="/api/auth/logout" method="POST">
+            <button
+              type="submit"
+              className="flex items-center w-full gap-3 px-3 py-2.5 text-sm text-slate-500 rounded-xl hover:text-white hover:bg-white/[0.04] transition-all duration-300"
+            >
+              <LogOut className="w-4 h-4" />
+              Salir
+            </button>
+          </form>
+        </div>
+      </aside>
+    </>
   );
 }

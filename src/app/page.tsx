@@ -12,52 +12,52 @@ import { cn } from "@/lib/utils";
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
+    <main className="relative min-h-screen min-h-[100dvh] overflow-hidden">
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[min(600px,100vw)] h-[min(600px,100vw)] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none animate-tl-float" />
 
-      <header className="relative z-10 flex items-center justify-between max-w-6xl px-6 py-6 mx-auto">
+      <header className="relative z-10 flex items-center justify-between max-w-6xl px-4 py-5 mx-auto sm:px-6 sm:py-6 animate-tl-fade-in">
         <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-teal-400 to-indigo-500">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-teal-400 to-indigo-500 shadow-glow">
             <Sparkles className="w-4 h-4 text-[var(--tl-bg)]" />
           </div>
           <span className="font-bold text-white">TalentoLink</span>
         </div>
-        <Link href="/admin" className="tl-btn-ghost text-xs">
+        <Link href="/admin" className="tl-btn-ghost text-xs px-4 py-2">
           Admin
         </Link>
       </header>
 
-      <section className="relative z-10 max-w-6xl px-6 pt-12 pb-24 mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 text-xs font-medium rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-200">
+      <section className="relative z-10 max-w-6xl px-4 pt-8 pb-20 mx-auto text-center sm:px-6 sm:pt-12 sm:pb-24">
+        <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 sm:mb-8 text-xs font-medium rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-200 animate-tl-scale-in">
           <Zap className="w-3 h-3" />
-          IA ligera · 6 empresas · 535 candidatos sincronizados
+          IA ligera · 6 empresas · 535 candidatos
         </div>
 
-        <h1 className="max-w-4xl mx-auto text-5xl font-extrabold tracking-tight text-white sm:text-7xl">
+        <h1 className="max-w-4xl mx-auto text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl animate-tl-fade-in">
           Tu talento,{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-cyan-300 to-indigo-400">
             conectado
           </span>
         </h1>
-        <p className="max-w-2xl mx-auto mt-6 text-lg leading-relaxed text-slate-400">
+        <p className="max-w-2xl mx-auto mt-5 sm:mt-6 text-base sm:text-lg leading-relaxed text-slate-400 animate-tl-fade-in">
           Plataforma multi-empresa para formularios de empleo. Resúmenes inteligentes,
           perfiles estilo LinkedIn y gestión centralizada — sin perder un solo dato.
         </p>
 
-        <div className="flex flex-col items-center justify-center gap-3 mt-10 sm:flex-row">
-          <Link href="/admin" className="tl-btn-primary px-8 py-3.5 text-base">
+        <div className="flex flex-col items-stretch justify-center gap-3 mt-8 sm:mt-10 sm:flex-row sm:items-center max-w-md sm:max-w-none mx-auto animate-tl-fade-in">
+          <Link href="/admin" className="tl-btn-primary px-8 py-3.5 text-base justify-center">
             Panel de control
             <ArrowRight className="w-4 h-4" />
           </Link>
-          <Link href="/admin/candidatos" className="tl-btn-ghost px-8 py-3.5 text-base">
+          <Link href="/admin/candidatos" className="tl-btn-ghost px-8 py-3.5 text-base justify-center">
             <Users className="w-4 h-4" />
             Explorar candidatos
           </Link>
         </div>
       </section>
 
-      <section className="relative z-10 max-w-6xl px-6 pb-24 mx-auto">
-        <div className="grid gap-5 sm:grid-cols-3">
+      <section className="relative z-10 max-w-6xl px-4 pb-20 mx-auto sm:px-6 sm:pb-24">
+        <div className="grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 tl-stagger">
           {[
             {
               icon: Building2,
@@ -78,8 +78,8 @@ export default function Home() {
               color: "text-teal-400",
             },
           ].map(({ icon: Icon, title, desc, color }) => (
-            <div key={title} className="tl-card-hover p-6 text-left">
-              <Icon className={cn("w-8 h-8 mb-4", color)} />
+            <div key={title} className="tl-card-hover p-6 text-left sm:col-span-1 last:sm:col-span-2 last:lg:col-span-1">
+              <Icon className={cn("w-8 h-8 mb-4 transition-transform duration-300 group-hover:scale-110", color)} />
               <h3 className="mb-2 font-bold text-white">{title}</h3>
               <p className="text-sm leading-relaxed text-slate-400">{desc}</p>
             </div>

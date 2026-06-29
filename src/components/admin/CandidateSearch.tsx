@@ -38,23 +38,23 @@ export function CandidateSearch({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 space-y-4 glass-card">
+    <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4 glass-card">
       <div className="relative">
-        <Search className="absolute w-4 h-4 -translate-y-1/2 left-4 top-1/2 text-slate-500" />
+        <Search className="absolute w-4 h-4 -translate-y-1/2 left-4 top-1/2 text-slate-500 pointer-events-none" />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por nombre, cédula, correo, experiencia..."
+          placeholder="Buscar por nombre, cédula, correo..."
           className="w-full py-3 pl-11 pr-4 text-sm tl-input"
         />
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
         <select
           value={empresa}
           onChange={(e) => setEmpresa(e.target.value)}
-          className="px-4 py-2 text-sm tl-input !w-auto"
+          className="w-full px-4 py-2.5 text-sm tl-input"
         >
           <option value="">Todas las empresas</option>
           {tenants.map((t) => (
@@ -67,7 +67,7 @@ export function CandidateSearch({
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value)}
-          className="px-4 py-2 text-sm tl-input !w-auto"
+          className="w-full px-4 py-2.5 text-sm tl-input"
         >
           <option value="">Todos los estados</option>
           {Object.entries(STATUS_LABELS).map(([value, label]) => (
@@ -77,10 +77,7 @@ export function CandidateSearch({
           ))}
         </select>
 
-        <button
-          type="submit"
-          className="tl-btn-primary"
-        >
+        <button type="submit" className="tl-btn-primary w-full sm:w-auto sm:min-w-[7rem]">
           Buscar
         </button>
       </div>

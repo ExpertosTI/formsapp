@@ -33,17 +33,17 @@ export default async function CandidatosPage({ searchParams }: Props) {
   });
 
   return (
-    <div className="max-w-5xl">
-      <header className="mb-8">
-        <h1 className="text-3xl font-black text-white">Candidatos</h1>
-        <p className="mt-1 text-slate-400">
-          Explora todos los perfiles como en LinkedIn. {submissions.length} registros en total.
+    <div className="max-w-5xl mx-auto">
+      <header className="tl-page-header">
+        <h1 className="tl-page-title">Candidatos</h1>
+        <p className="tl-page-sub">
+          Explora todos los perfiles. {submissions.length} registros en total.
         </p>
       </header>
 
       <CandidateSearch tenants={tenants} initialQuery={q} initialEmpresa={empresa} initialEstado={estado} />
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 space-y-3 tl-stagger">
         {filtered.map((sub) => (
           <CandidateCard
             key={sub.id}
