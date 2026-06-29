@@ -6,27 +6,29 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-# ── Credenciales de producción forms.renace.tech ──
-DB_NAME="renace_forms"
-DB_USER="renaceforms"
-DB_PASS="RenaceForms2026!xK9mP2"
-SUPER_ADMIN_EMAIL="admin@renace.tech"
-SUPER_ADMIN_PASSWORD="CatagceAdmin2026!"
-ADMIN_SESSION_SECRET="tl_8f3a2c91e7b4d605a8e2f1b9c0d7e6a5f4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8"
+node <<'NODE'
+const fs = require("fs");
 
-cat > .env << EOF
-NEXT_PUBLIC_BASE_URL=https://forms.renace.tech
-DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@host.docker.internal:5432/${DB_NAME}
-DATABASE_URL_MIGRATE=postgresql://${DB_USER}:${DB_PASS}@localhost/${DB_NAME}?host=/var/run/postgresql
-SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL}
-SUPER_ADMIN_PASSWORD=${SUPER_ADMIN_PASSWORD}
-ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET}
-EOF
+const DB_NAME = "renace_forms";
+const DB_USER = "renaceforms";
+const DB_PASS = "RenaceForms2026!xK9mP2";
+const DB_PASS_ENC = encodeURIComponent(DB_PASS);
 
-chmod 600 .env
-echo "==> .env de producción creado"
+const env = `NEXT_PUBLIC_BASE_URL=https://forms.renace.tech
+DATABASE_URL=postgresql://${DB_USER}:${DB_PASS_ENC}@host.docker.internal:5432/${DB_NAME}
+DATABASE_URL_MIGRATE=postgresql://${DB_USER}:${DB_PASS_ENC}@127.0.0.1:5432/${DB_NAME}
+SUPER_ADMIN_EMAIL=admin@renace.tech
+SUPER_ADMIN_PASSWORD=CatagceAdmin2026!
+ADMIN_SESSION_SECRET=tl_8f3a2c91e7b4d605a8e2f1b9c0d7e6a5f4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8
+`;
 
-export DB_NAME DB_USER DB_PASS
+fs.writeFileSync(".env", env, { mode: 0o600 });
+console.log("==> .env de producción creado (TCP 127.0.0.1, contraseña URL-encoded)");
+NODE
+
+export DB_NAME="renace_forms"
+export DB_USER="renaceforms"
+export DB_PASS="RenaceForms2026!xK9mP2"
+
 ./deploy.sh db
-
 ./scripts/setup-server.sh

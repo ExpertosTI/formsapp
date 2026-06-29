@@ -11,16 +11,18 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
+set +H
 set -a
 # shellcheck disable=SC1091
 source .env
 set +a
+set -H
 
 : "${SUPER_ADMIN_EMAIL:?SUPER_ADMIN_EMAIL requerido}"
 : "${SUPER_ADMIN_PASSWORD:?SUPER_ADMIN_PASSWORD requerido}"
 : "${ADMIN_SESSION_SECRET:?ADMIN_SESSION_SECRET requerido}"
 
-# Migraciones en el host: socket UNIX (no requiere TCP 5432)
+# Migraciones en el host vía TCP (socket+peer falla cuando se ejecuta como root)
 MIGRATE_URL="${DATABASE_URL_MIGRATE:-$DATABASE_URL}"
 if [ -z "$MIGRATE_URL" ]; then
   echo "Error: define DATABASE_URL_MIGRATE o DATABASE_URL en .env"
@@ -38,7 +40,7 @@ npm ci
 echo "==> Generando Prisma client..."
 npx prisma generate
 
-echo "==> Aplicando schema (socket, sin borrar datos)..."
+echo "==> Aplicando schema (TCP 127.0.0.1, sin borrar datos)..."
 DATABASE_URL="$MIGRATE_URL" npx prisma db push
 
 echo "==> Migrando datos Ecofast (upsert, no borra)..."
