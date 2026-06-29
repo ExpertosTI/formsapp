@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
-# Ejecutar EN EL SERVIDOR (odoo18) después de git pull.
-# Uso: ./scripts/setup-server.sh
+# Ejecutar EN EL SERVIDOR en /opt/talentolink
+# Solo despliega forms.renace.tech — NO toca Odoo ni otros stacks.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 if [ ! -f .env ]; then
-  echo "==> Creando .env desde .env.example"
-  cp .env.example .env
-  echo "    Edita .env con las credenciales reales antes de continuar."
+  echo "==> Crea .env primero: cp .env.example .env && nano .env"
   exit 1
 fi
 
@@ -18,10 +16,21 @@ set -a
 source .env
 set +a
 
-: "${DATABASE_URL:?DATABASE_URL requerido en .env}"
-: "${SUPER_ADMIN_EMAIL:?SUPER_ADMIN_EMAIL requerido en .env}"
-: "${SUPER_ADMIN_PASSWORD:?SUPER_ADMIN_PASSWORD requerido en .env}"
-: "${ADMIN_SESSION_SECRET:?ADMIN_SESSION_SECRET requerido en .env}"
+: "${SUPER_ADMIN_EMAIL:?SUPER_ADMIN_EMAIL requerido}"
+: "${SUPER_ADMIN_PASSWORD:?SUPER_ADMIN_PASSWORD requerido}"
+: "${ADMIN_SESSION_SECRET:?ADMIN_SESSION_SECRET requerido}"
+
+# Migraciones en el host: socket UNIX (no requiere TCP 5432)
+MIGRATE_URL="${DATABASE_URL_MIGRATE:-$DATABASE_URL}"
+if [ -z "$MIGRATE_URL" ]; then
+  echo "Error: define DATABASE_URL_MIGRATE o DATABASE_URL en .env"
+  exit 1
+fi
+
+if ! systemctl is-active --quiet postgresql 2>/dev/null; then
+  echo "Error: PostgreSQL no está activo. No lo arrancamos automáticamente."
+  exit 1
+fi
 
 echo "==> Instalando dependencias..."
 npm ci
@@ -29,19 +38,22 @@ npm ci
 echo "==> Generando Prisma client..."
 npx prisma generate
 
-echo "==> Aplicando schema (sin borrar datos)..."
-npx prisma db push
+echo "==> Aplicando schema (socket, sin borrar datos)..."
+DATABASE_URL="$MIGRATE_URL" npx prisma db push
 
-echo "==> Migrando datos de Ecofast (upsert, no borra)..."
-node migration_backup/migrate_sql.js
+echo "==> Migrando datos Ecofast (upsert, no borra)..."
+DATABASE_URL="$MIGRATE_URL" node migration_backup/migrate_sql.js
 
 echo "==> Construyendo imagen Docker..."
 docker build -t talentolink:latest .
 
-echo "==> Desplegando stack..."
-docker stack deploy -c docker-compose.yml talentolink --with-registry-auth 2>/dev/null \
-  || docker compose up -d --build
+echo "==> Desplegando SOLO stack renace-forms (forms.renace.tech)..."
+if docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null | grep -q active; then
+  docker stack deploy -c docker-compose.yml renace-forms
+else
+  docker compose up -d --build
+fi
 
 echo ""
-echo "==> TalentoLink desplegado en ${NEXT_PUBLIC_BASE_URL:-https://catagce.renace.tech}"
+echo "==> Listo: https://forms.renace.tech/admin"
 echo "    Admin: ${SUPER_ADMIN_EMAIL}"

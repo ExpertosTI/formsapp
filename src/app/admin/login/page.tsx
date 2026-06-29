@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
             <Network className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-black text-white">TalentoLink</h1>
-          <p className="text-sm text-slate-400">catagce.renace.tech</p>
+          <p className="text-sm text-slate-400">forms.renace.tech</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

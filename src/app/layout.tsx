@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TalentoLink — catagce.renace.tech",
+  title: "TalentoLink — forms.renace.tech",
   description: "Plataforma multi-empresa para formularios de empleo y gestión de candidatos.",
 };
 
