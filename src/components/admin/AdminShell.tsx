@@ -18,7 +18,7 @@ function pageTitle(pathname: string): string {
   return "Admin";
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({ children, tenantSlug = null }: { children: React.ReactNode; tenantSlug?: string | null }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -35,7 +35,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen min-h-[100dvh] bg-[var(--tl-bg)]">
-      <AdminSidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <AdminSidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} tenantSlug={tenantSlug} />
 
       <div className="flex flex-col flex-1 min-w-0">
         <header className="sticky top-0 z-30 flex items-center justify-between gap-3 px-4 py-3 border-b border-white/[0.06] bg-[var(--tl-surface)]/80 backdrop-blur-xl lg:hidden">

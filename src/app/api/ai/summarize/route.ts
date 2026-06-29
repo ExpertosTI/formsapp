@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { asSubmissionData } from "@/lib/candidate";
-import { getCandidateInsight } from "@/lib/ai";
+import { getCandidateInsight, suggestPositions } from "@/lib/ai";
 
 export async function POST(req: NextRequest) {
   const { submissionId } = await req.json();
@@ -12,6 +12,8 @@ export async function POST(req: NextRequest) {
   const sub = await prisma.submission.findUnique({ where: { id: submissionId } });
   if (!sub) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const insight = await getCandidateInsight(asSubmissionData(sub.data));
-  return NextResponse.json(insight);
+  const data = asSubmissionData(sub.data);
+  const insight = await getCandidateInsight(data);
+  const suggestedPositions = suggestPositions(data);
+  return NextResponse.json({ ...insight, suggestedPositions });
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE } from "@/lib/auth-constants";
 import { validateCredentials } from "@/lib/auth-credentials";
+import { TENANT_COOKIE } from "@/lib/tenant-auth";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
   }
 
   const res = NextResponse.json({ ok: true });
+  res.cookies.delete(TENANT_COOKIE);
   res.cookies.set(AUTH_COOKIE, secret, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

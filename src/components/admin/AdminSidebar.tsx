@@ -10,22 +10,32 @@ import {
   Sparkles,
   ExternalLink,
   X,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const nav = [
-  { href: "/admin", label: "Inicio", icon: LayoutDashboard, exact: true },
-  { href: "/admin/candidatos", label: "Candidatos", icon: Users },
-  { href: "/admin/empresas", label: "Empresas", icon: Building2 },
+const navSuper = [
+  { href: "/admin", label: "Inicio", icon: LayoutDashboard, exact: true as const },
+  { href: "/admin/candidatos", label: "Candidatos", icon: Users, exact: false as const },
+  { href: "/admin/estadisticas", label: "Estadísticas", icon: BarChart3, exact: false as const },
+  { href: "/admin/empresas", label: "Empresas", icon: Building2, exact: false as const },
+];
+
+const navTenant = (slug: string) => [
+  { href: `/admin/candidatos?empresa=${slug}`, label: "Mis candidatos", icon: Users, exact: false as const },
+  { href: `/admin/estadisticas?empresa=${slug}`, label: "Estadísticas", icon: BarChart3, exact: false as const },
+  { href: `/forms/${slug}`, label: "Mi formulario", icon: ExternalLink, exact: true as const, external: true as const },
 ];
 
 interface Props {
   mobileOpen?: boolean;
   onClose?: () => void;
+  tenantSlug?: string | null;
 }
 
-export function AdminSidebar({ mobileOpen = false, onClose }: Props) {
+export function AdminSidebar({ mobileOpen = false, onClose, tenantSlug = null }: Props) {
   const pathname = usePathname();
+  const nav = tenantSlug ? navTenant(tenantSlug) : navSuper;
 
   return (
     <>
@@ -72,32 +82,41 @@ export function AdminSidebar({ mobileOpen = false, onClose }: Props) {
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
-          {nav.map(({ href, label, icon: Icon, exact }) => {
-            const active = exact ? pathname === href : pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={onClose}
-                className={cn(
-                  "relative flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl",
-                  "transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                  active
-                    ? "text-white bg-white/[0.08] border border-white/10 shadow-sm"
-                    : "text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
-                )}
-              >
-                {active && (
-                  <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-teal-400 to-indigo-400"
-                    aria-hidden
-                  />
-                )}
-                <Icon className={cn("w-4 h-4 shrink-0 transition-colors duration-300", active && "text-teal-400")} />
-                {label}
-              </Link>
-            );
-          })}
+        {nav.map((item) => {
+          const { href, label, icon: Icon, exact } = item;
+          const external = "external" in item && item.external;
+          const path = href.split("?")[0];
+          const isActive = exact
+            ? pathname === path
+            : pathname === path || pathname.startsWith(`${path}/`);
+
+          const linkProps = external ? { target: "_blank" as const, rel: "noopener noreferrer" } : {};
+
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={onClose}
+              {...linkProps}
+              className={cn(
+                "relative flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl",
+                "transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                isActive
+                  ? "text-white bg-white/[0.08] border border-white/10 shadow-sm"
+                  : "text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
+              )}
+            >
+              {isActive && (
+                <span
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-teal-400 to-indigo-400"
+                  aria-hidden
+                />
+              )}
+              <Icon className={cn("w-4 h-4 shrink-0 transition-colors duration-300", isActive && "text-teal-400")} />
+              {label}
+            </Link>
+          );
+        })}
         </nav>
 
         <div className="p-3 space-y-1 border-t border-white/[0.06]">

@@ -101,3 +101,46 @@ export function dashboardHeuristicInsights(stats: {
   tips.push(`${stats.totalCandidates} perfiles en ${stats.tenantCount} empresas — datos sincronizados.`);
   return tips.slice(0, 3);
 }
+
+/** Sugiere puestos según oficio, experiencia y formación (heurística local) */
+export function suggestPositions(data: SubmissionData): string[] {
+  const text = [
+    data.oficio_profesion,
+    data.experiencia,
+    data.especialidad,
+    data.secundaria,
+    data.universitaria,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  const rules: { keywords: string[]; role: string }[] = [
+    { keywords: ["cajer", "caja", "pos", "cobro"], role: "Cajero/a" },
+    { keywords: ["servicio al cliente", "atención al cliente", "call center", "anfitrion"], role: "Servicio al cliente" },
+    { keywords: ["vendedor", "ventas", "comercial", "tienda"], role: "Vendedor/a" },
+    { keywords: ["almacen", "inventario", "bodega", "stock"], role: "Almacenista" },
+    { keywords: ["supervisor", "encargad", "jefe"], role: "Supervisor/a" },
+    { keywords: ["diseño", "diseñador", "grafico"], role: "Diseño / Creativo" },
+    { keywords: ["contab", "finanz"], role: "Contabilidad / Finanzas" },
+    { keywords: ["seguridad", "vigilancia"], role: "Seguridad" },
+    { keywords: ["mensajer", "motor", "delivery"], role: "Mensajería / Motorizado" },
+    { keywords: ["limpieza", "aseo"], role: "Limpieza / Aseo" },
+    { keywords: ["cocina", "chef", "restaurant"], role: "Cocina / Restaurante" },
+  ];
+
+  const found: string[] = [];
+  for (const { keywords, role } of rules) {
+    if (keywords.some((k) => text.includes(k)) && !found.includes(role)) {
+      found.push(role);
+    }
+  }
+
+  const oficio = String(data.oficio_profesion ?? "").trim();
+  if (found.length === 0 && oficio) {
+    found.push(oficio.split(/[,/]/)[0].trim());
+  }
+  if (found.length === 0) found.push("Evaluar perfil manualmente");
+
+  return found.slice(0, 4);
+}

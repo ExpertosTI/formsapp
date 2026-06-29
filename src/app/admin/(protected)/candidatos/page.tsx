@@ -1,7 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { CandidateCard } from "@/components/admin/CandidateCard";
 import { CandidateSearch } from "@/components/admin/CandidateSearch";
-import { matchesSearch, asSubmissionData } from "@/lib/candidate";
+import {
+  asSubmissionData,
+  getCandidateName,
+  matchesSearch,
+  parseSalary,
+  salaryBucket,
+} from "@/lib/candidate";
+import { getTenantSession } from "@/lib/tenant-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,11 +17,19 @@ interface Props {
     q?: string;
     empresa?: string;
     estado?: string;
+    orden?: string;
+    agrupar?: string;
   }>;
 }
 
 export default async function CandidatosPage({ searchParams }: Props) {
-  const { q = "", empresa = "", estado = "" } = await searchParams;
+  const params = await searchParams;
+  const tenantSession = await getTenantSession();
+  const q = params.q ?? "";
+  const empresa = tenantSession ?? params.empresa ?? "";
+  const estado = params.estado ?? "";
+  const orden = params.orden ?? "";
+  const agrupar = params.agrupar ?? "";
 
   const [submissions, tenants] = await Promise.all([
     prisma.submission.findMany({
@@ -24,7 +39,7 @@ export default async function CandidatosPage({ searchParams }: Props) {
     prisma.tenant.findMany({ orderBy: { name: "asc" }, select: { slug: true, name: true } }),
   ]);
 
-  const filtered = submissions.filter((sub) => {
+  let filtered = submissions.filter((sub) => {
     const data = asSubmissionData(sub.data);
     if (empresa && sub.tenant.slug !== empresa) return false;
     if (estado && sub.status !== estado) return false;
@@ -32,32 +47,85 @@ export default async function CandidatosPage({ searchParams }: Props) {
     return true;
   });
 
+  if (orden === "sueldo_desc") {
+    filtered = [...filtered].sort((a, b) => (parseSalary(asSubmissionData(b.data).sueldo_aspirado) ?? 0) - (parseSalary(asSubmissionData(a.data).sueldo_aspirado) ?? 0));
+  } else if (orden === "sueldo_asc") {
+    filtered = [...filtered].sort((a, b) => (parseSalary(asSubmissionData(a.data).sueldo_aspirado) ?? 0) - (parseSalary(asSubmissionData(b.data).sueldo_aspirado) ?? 0));
+  } else if (orden === "nombre") {
+    filtered = [...filtered].sort((a, b) => getCandidateName(asSubmissionData(a.data)).localeCompare(getCandidateName(asSubmissionData(b.data))));
+  }
+
+  const groups: { label: string; items: typeof filtered }[] = [];
+  if (agrupar === "sueldo") {
+    const map = new Map<string, typeof filtered>();
+    for (const sub of filtered) {
+      const bucket = salaryBucket(asSubmissionData(sub.data).sueldo_aspirado);
+      if (!map.has(bucket)) map.set(bucket, []);
+      map.get(bucket)!.push(sub);
+    }
+    for (const [label, items] of map) groups.push({ label, items });
+  } else if (agrupar === "empresa") {
+    const map = new Map<string, typeof filtered>();
+    for (const sub of filtered) {
+      const label = sub.tenant.name;
+      if (!map.has(label)) map.set(label, []);
+      map.get(label)!.push(sub);
+    }
+    for (const [label, items] of [...map].sort((a, b) => b[1].length - a[1].length)) groups.push({ label, items });
+  }
+
+  const renderList = (list: typeof filtered) =>
+    list.map((sub) => (
+      <CandidateCard
+        key={sub.id}
+        id={sub.id}
+        data={sub.data}
+        files={sub.files}
+        status={sub.status}
+        createdAt={sub.createdAt}
+        tenantName={sub.tenant.name}
+        tenantSlug={sub.tenant.slug}
+      />
+    ));
+
   return (
     <div className="max-w-5xl mx-auto">
       <header className="tl-page-header">
-        <h1 className="tl-page-title">Candidatos</h1>
+        <h1 className="tl-page-title">{tenantSession ? "Mis candidatos" : "Candidatos"}</h1>
         <p className="tl-page-sub">
-          Explora todos los perfiles. {submissions.length} registros en total.
+          {filtered.length} de {submissions.length} registros
+          {tenantSession ? "" : " · fotos y CV en miniatura"}
         </p>
       </header>
 
-      <CandidateSearch tenants={tenants} initialQuery={q} initialEmpresa={empresa} initialEstado={estado} />
+      <CandidateSearch
+        tenants={tenants}
+        initialQuery={q}
+        initialEmpresa={empresa}
+        initialEstado={estado}
+        initialOrden={orden}
+        initialAgrupar={agrupar}
+        lockEmpresa={tenantSession ?? undefined}
+      />
 
-      <div className="mt-6 space-y-3 tl-stagger">
-        {filtered.map((sub) => (
-          <CandidateCard
-            key={sub.id}
-            id={sub.id}
-            data={sub.data}
-            status={sub.status}
-            createdAt={sub.createdAt}
-            tenantName={sub.tenant.name}
-            tenantSlug={sub.tenant.slug}
-          />
-        ))}
-        {filtered.length === 0 && (
-          <div className="p-12 text-center glass-card">
-            <p className="text-slate-400">No se encontraron candidatos con esos filtros.</p>
+      <div className="mt-6 space-y-6">
+        {agrupar && groups.length > 0 ? (
+          groups.map((g) => (
+            <section key={g.label}>
+              <h2 className="mb-3 text-sm font-bold tracking-wider uppercase text-teal-400">
+                {g.label} <span className="text-slate-500">({g.items.length})</span>
+              </h2>
+              <div className="space-y-3 tl-stagger">{renderList(g.items)}</div>
+            </section>
+          ))
+        ) : (
+          <div className="space-y-3 tl-stagger">
+            {renderList(filtered)}
+            {filtered.length === 0 && (
+              <div className="p-12 text-center glass-card">
+                <p className="text-slate-400">No se encontraron candidatos con esos filtros.</p>
+              </div>
+            )}
           </div>
         )}
       </div>

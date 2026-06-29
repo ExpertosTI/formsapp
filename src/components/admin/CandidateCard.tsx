@@ -1,17 +1,22 @@
 import Link from "next/link";
-import { Building2, MapPin, Mail, Phone, ChevronRight } from "lucide-react";
+import { Building2, ChevronRight } from "lucide-react";
 import {
   asSubmissionData,
+  asSubmissionFiles,
+  formatSalary,
   getCandidateHeadline,
-  getCandidateInitials,
   getCandidateName,
+  parseSalary,
   STATUS_COLORS,
   STATUS_LABELS,
 } from "@/lib/candidate";
+import { CandidateAvatar } from "@/components/admin/CandidateAvatar";
+import { FileThumbnails } from "@/components/admin/FileThumbnails";
 
 interface Props {
   id: string;
   data: unknown;
+  files: unknown;
   status: string;
   createdAt: Date;
   tenantName: string;
@@ -21,22 +26,22 @@ interface Props {
 export function CandidateCard({
   id,
   data,
+  files,
   status,
   createdAt,
   tenantName,
   tenantSlug,
 }: Props) {
   const fields = asSubmissionData(data);
+  const fileMap = asSubmissionFiles(files);
   const name = getCandidateName(fields);
   const headline = getCandidateHeadline(fields);
-  const initials = getCandidateInitials(fields);
+  const salary = parseSalary(fields.sueldo_aspirado);
 
   return (
     <Link href={`/admin/candidatos/${id}`} className="block p-4 sm:p-5 tl-card-hover group">
       <div className="flex gap-3 sm:gap-4">
-        <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 text-base sm:text-lg font-bold rounded-2xl bg-gradient-to-br from-teal-500/30 to-indigo-500/30 text-white border border-white/10 transition-transform duration-300 group-hover:scale-105">
-          {initials}
-        </div>
+        <CandidateAvatar data={fields} files={fileMap} tenantSlug={tenantSlug} size="md" className="transition-transform duration-300 group-hover:scale-105" />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
@@ -47,31 +52,19 @@ export function CandidateCard({
             </div>
             <ChevronRight className="flex-shrink-0 w-5 h-5 mt-1 text-slate-600 transition-all duration-300 group-hover:text-teal-400 group-hover:translate-x-0.5" />
           </div>
-          <div className="flex flex-wrap items-center gap-2 mt-3">
-            <span
-              className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${STATUS_COLORS[status] ?? STATUS_COLORS.nuevo}`}
-            >
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${STATUS_COLORS[status] ?? STATUS_COLORS.nuevo}`}>
               {STATUS_LABELS[status] ?? status}
             </span>
             <span className="flex items-center gap-1 text-xs text-slate-500">
               <Building2 className="w-3 h-3" />
               {tenantName}
             </span>
-          </div>
-          <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
-            {fields.correo && (
-              <span className="flex items-center gap-1">
-                <Mail className="w-3 h-3" />
-                {String(fields.correo)}
-              </span>
-            )}
-            {fields.celular && (
-              <span className="flex items-center gap-1">
-                <Phone className="w-3 h-3" />
-                {String(fields.celular)}
-              </span>
+            {salary != null && (
+              <span className="text-xs font-medium text-amber-300/90">{formatSalary(fields.sueldo_aspirado)}</span>
             )}
           </div>
+          <FileThumbnails files={fileMap} tenantSlug={tenantSlug} />
           <p className="mt-2 text-[10px] text-slate-600">
             {createdAt.toLocaleDateString("es-DO", { dateStyle: "medium" })}
           </p>

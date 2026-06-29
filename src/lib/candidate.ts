@@ -50,6 +50,46 @@ export function getCandidateHeadline(data: SubmissionData): string {
   );
 }
 
+/** Extrae número de sueldo aspirado (RD$) para filtros y estadísticas */
+export function parseSalary(value: unknown): number | null {
+  if (value == null) return null;
+  const s = String(value).replace(/[^\d.,]/g, "").replace(/,/g, "");
+  const n = parseFloat(s);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+export function formatSalary(value: unknown): string {
+  const n = parseSalary(value);
+  if (n == null) return String(value ?? "—");
+  return new Intl.NumberFormat("es-DO", { style: "currency", currency: "DOP", maximumFractionDigits: 0 }).format(n);
+}
+
+export function salaryBucket(value: unknown): string {
+  const n = parseSalary(value);
+  if (n == null) return "Sin dato";
+  if (n < 15000) return "Menos de RD$15,000";
+  if (n < 20000) return "RD$15,000 – 19,999";
+  if (n < 25000) return "RD$20,000 – 24,999";
+  if (n < 30000) return "RD$25,000 – 29,999";
+  return "RD$30,000+";
+}
+
+export function getPhotoFilename(files: SubmissionFiles): string | null {
+  return files.foto ?? files.photo ?? files.imagen ?? null;
+}
+
+export function getCvFilename(files: SubmissionFiles): string | null {
+  return files.curriculum ?? files.cv ?? files.resume ?? null;
+}
+
+export function isImageFilename(name: string): boolean {
+  return /\.(jpe?g|png|gif|webp)$/i.test(name);
+}
+
+export function isPdfFilename(name: string): boolean {
+  return /\.pdf$/i.test(name);
+}
+
 export function matchesSearch(data: SubmissionData, query: string): boolean {
   if (!query.trim()) return true;
   const q = query.toLowerCase();
