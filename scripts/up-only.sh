@@ -16,6 +16,7 @@ set +a
 export RENACE_FORMS_PORT="${RENACE_FORMS_PORT:-3010}"
 echo "==> Puerto local: 127.0.0.1:${RENACE_FORMS_PORT}"
 
+prepare_forms_container
 docker_compose up -d --remove-orphans
 [ -x "$ROOT/scripts/sync-uploads.sh" ] && "$ROOT/scripts/sync-uploads.sh"
 [ -x "$ROOT/scripts/setup-nginx.sh" ] && "$ROOT/scripts/setup-nginx.sh"

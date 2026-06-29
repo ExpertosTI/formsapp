@@ -37,6 +37,7 @@ echo "==> 3/5 docker build..."
 docker build --network=host -t talentolink:latest -f Dockerfile .
 
 echo "==> 4/5 docker compose up (127.0.0.1:${RENACE_FORMS_PORT})..."
+prepare_forms_container
 docker_compose up -d --remove-orphans
 
 [ -x "$ROOT/scripts/sync-uploads.sh" ] && "$ROOT/scripts/sync-uploads.sh"

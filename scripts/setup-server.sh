@@ -59,6 +59,7 @@ docker build -t talentolink:latest .
 
 export RENACE_FORMS_PORT="${RENACE_FORMS_PORT:-3010}"
 echo "==> Desplegando forms.renace.tech (puerto ${RENACE_FORMS_PORT})..."
+prepare_forms_container
 docker_compose up -d --remove-orphans
 [ -x "$ROOT/scripts/setup-nginx.sh" ] && "$ROOT/scripts/setup-nginx.sh"
 
