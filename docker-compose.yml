@@ -1,14 +1,13 @@
 version: '3.8'
 
-# SOLO este stack — no modifica Odoo ni otros servicios en RenaceNet.
-# Dominio: forms.renace.tech
+# forms.renace.tech — docker compose (este servidor NO usa Swarm)
+# Imagen: talentolink:latest (construida por scripts/deploy-only.sh)
 
 services:
   renace-forms-app:
     image: talentolink:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    container_name: renace-forms-app
+    restart: unless-stopped
     networks:
       - RenaceNet
     env_file:
@@ -21,35 +20,23 @@ services:
       - ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET}
       - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY:-}
       - ECOFAST_BASE=/var/www/ecofast
-      - SMTP_HOST=${SMTP_HOST:-}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASS=${SMTP_PASS:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    deploy:
-      mode: replicated
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.renace-forms-secure.rule=Host(`forms.renace.tech`)"
-        - "traefik.http.routers.renace-forms-secure.entrypoints=websecure"
-        - "traefik.http.routers.renace-forms-secure.tls.certresolver=letsencryptresolver"
-        - "traefik.http.services.renace-forms-app.loadbalancer.server.port=3000"
-        - "traefik.http.routers.renace-forms-http.rule=Host(`forms.renace.tech`)"
-        - "traefik.http.routers.renace-forms-http.entrypoints=web"
-        - "traefik.http.routers.renace-forms-http.middlewares=https-redirect"
-        - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=RenaceNet"
+      - "traefik.http.routers.renace-forms-secure.rule=Host(`forms.renace.tech`)"
+      - "traefik.http.routers.renace-forms-secure.entrypoints=websecure"
+      - "traefik.http.routers.renace-forms-secure.tls.certresolver=letsencryptresolver"
+      - "traefik.http.routers.renace-forms-secure.service=renace-forms-app"
+      - "traefik.http.routers.renace-forms-http.rule=Host(`forms.renace.tech`)"
+      - "traefik.http.routers.renace-forms-http.entrypoints=web"
+      - "traefik.http.routers.renace-forms-http.middlewares=https-redirect"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.services.renace-forms-app.loadbalancer.server.port=3000"
     volumes:
       - renace-forms_uploads:/app/public/uploads
       - /var/www/ecofast/tenants:/var/www/ecofast/tenants:ro
-      - ./migration_backup:/app/migration_backup:ro
     logging:
       driver: "json-file"
       options:
@@ -58,7 +45,6 @@ services:
 
 volumes:
   renace-forms_uploads:
-    external: false
 
 networks:
   RenaceNet:

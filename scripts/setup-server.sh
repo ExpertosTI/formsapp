@@ -55,11 +55,12 @@ DATABASE_URL="$MIGRATE_URL" node migration_backup/migrate_sql.js
 echo "==> Construyendo imagen Docker..."
 docker build -t talentolink:latest .
 
-echo "==> Desplegando SOLO stack renace-forms (forms.renace.tech)..."
-if docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null | grep -q active; then
+echo "==> Desplegando forms.renace.tech..."
+SWARM_STATE=$(docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null || echo "inactive")
+if [ "$SWARM_STATE" = "active" ]; then
   docker stack deploy -c docker-compose.yml renace-forms
 else
-  docker compose up -d --build
+  docker compose up -d --remove-orphans
 fi
 
 echo ""
