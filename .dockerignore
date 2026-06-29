@@ -1,11 +1,14 @@
 node_modules
-.next
 .git
 legacy
 .npm_cache
 uploads
 
-# Archivos grandes — se montan por volumen, no van en la imagen
+# Solo caché de Next — standalone y static SÍ van a la imagen
+.next/cache
+.next/trace
+
+# Archivos grandes — volumen Docker, no imagen
 public/uploads
 migration_backup/data_migration_temp.json
 
