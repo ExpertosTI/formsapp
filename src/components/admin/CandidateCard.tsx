@@ -14,6 +14,7 @@ import {
 import { computeCandidateScore, parseScoring, getScoreColor } from "@/lib/scoring";
 import { CandidateAvatar } from "@/components/admin/CandidateAvatar";
 import { FileThumbnails } from "@/components/admin/FileThumbnails";
+import { FavoriteButton } from "@/components/admin/FavoriteButton";
 
 interface Props {
   id: string;
@@ -72,9 +73,12 @@ export function CandidateCard({
                 <p className="text-xs text-slate-400 truncate">{headline}</p>
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
-                <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${scoreColor}`}>
-                  {scoring.overall}
-                </span>
+                <div className="flex items-center gap-1">
+                  <FavoriteButton submissionId={id} isFavorite={status === "favorito"} />
+                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${scoreColor}`}>
+                    {scoring.overall}
+                  </span>
+                </div>
                 <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-teal-400 transition-colors" />
               </div>
             </div>

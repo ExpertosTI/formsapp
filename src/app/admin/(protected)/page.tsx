@@ -129,6 +129,9 @@ export default async function AdminDashboard() {
       <header className="tl-page-header">
         <h1 className="tl-page-title">Super Admin</h1>
         <p className="tl-page-sub">Vista global · uso interno</p>
+        <Link href="/admin/empresas" className="inline-flex mt-3 tl-link">
+          + Registrar nueva empresa →
+        </Link>
       </header>
 
       <div className="grid gap-4 mb-8 sm:grid-cols-3 tl-stagger">

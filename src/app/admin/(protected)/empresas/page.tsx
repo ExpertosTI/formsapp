@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ExternalLink, Users, Mail } from "lucide-react";
+import { CreateTenantForm } from "@/components/admin/CreateTenantForm";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +15,10 @@ export default async function EmpresasPage() {
     <div className="max-w-5xl mx-auto">
       <header className="tl-page-header">
         <h1 className="tl-page-title">Empresas</h1>
-        <p className="tl-page-sub">{tenants.length} organizaciones · datos sincronizados</p>
+        <p className="tl-page-sub">Registra organizaciones y asigna su formulario privado</p>
       </header>
+
+      <CreateTenantForm />
 
       <div className="grid gap-4 sm:grid-cols-2 tl-stagger">
         {tenants.map((tenant) => (

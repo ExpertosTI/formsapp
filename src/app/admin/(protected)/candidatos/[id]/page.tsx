@@ -32,6 +32,7 @@ import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import { AiInsightPanel } from "@/components/admin/AiInsightPanel";
 import { CandidateAvatar } from "@/components/admin/CandidateAvatar";
 import { ScorePanel } from "@/components/admin/ScorePanel";
+import { FavoriteButton } from "@/components/admin/FavoriteButton";
 import {
   CandidateFieldGroups,
   CandidateSkillsBlock,
@@ -109,6 +110,7 @@ export default async function CandidatoDetailPage({ params }: Props) {
                 <span className={`px-2 py-1 text-xs font-bold rounded-lg border shrink-0 ${scoreColor}`}>
                   {scoring.overall}
                 </span>
+                <FavoriteButton submissionId={submission.id} isFavorite={submission.status === "favorito"} />
               </div>
             </div>
           </div>

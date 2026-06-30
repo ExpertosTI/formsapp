@@ -82,6 +82,7 @@ export function CandidateSearch({
 
         <select value={estado} onChange={(e) => setEstado(e.target.value)} className="w-full px-4 py-2.5 text-sm tl-input">
           <option value="">Todos los estados</option>
+          <option value="favorito">★ Pendientes / Favoritos</option>
           {Object.entries(STATUS_LABELS).map(([value, label]) => (
             <option key={value} value={value}>{label}</option>
           ))}

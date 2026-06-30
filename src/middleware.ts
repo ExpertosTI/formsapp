@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE, TENANT_COOKIE } from "@/lib/auth-constants";
-
-function parseTenantToken(token: string | undefined, secret: string | undefined): string | null {
-  if (!token || !secret || !token.startsWith("tenant_")) return null;
-  const suffix = `_${secret}`;
-  if (!token.endsWith(suffix)) return null;
-  const slug = token.slice("tenant_".length, -suffix.length);
-  return slug || null;
-}
+import { parseTenantToken } from "@/lib/session";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

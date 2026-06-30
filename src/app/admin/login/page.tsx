@@ -2,7 +2,8 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Lock, ArrowRight, Loader2, Building2 } from "lucide-react";
+import { TalentoLinkLogo } from "@/components/brand/TalentoLinkLogo";
+import { Lock, ArrowRight, Loader2, Building2 } from "lucide-react";
 
 type Mode = "super" | "empresa";
 
@@ -45,10 +46,8 @@ export default function AdminLoginPage() {
     <main className="flex items-center justify-center min-h-screen min-h-[100dvh] p-4 sm:p-6">
       <div className="absolute w-[min(500px,90vw)] h-[min(500px,90vw)] rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none animate-tl-float" />
       <div className="relative w-full max-w-md animate-tl-scale-in">
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 mb-4 rounded-2xl bg-gradient-to-br from-teal-400 to-indigo-500 shadow-glow">
-            <Sparkles className="w-7 h-7 text-[var(--tl-bg)]" />
-          </div>
+        <div className="mb-8 text-center flex flex-col items-center">
+          <TalentoLinkLogo size="lg" showText={false} className="mb-4 justify-center" />
           <h1 className="text-2xl font-bold text-white sm:text-3xl">TalentoLink</h1>
           <p className="mt-1 text-sm text-slate-500">forms.renace.tech</p>
         </div>

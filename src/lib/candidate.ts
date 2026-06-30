@@ -5,6 +5,7 @@ export type SubmissionFiles = Record<string, string>;
 
 export const STATUS_LABELS: Record<string, string> = {
   nuevo: "Nuevo",
+  favorito: "Pendiente / Favorito",
   revisado: "Revisado",
   entrevista: "Entrevista",
   contratado: "Contratado",
@@ -13,6 +14,7 @@ export const STATUS_LABELS: Record<string, string> = {
 
 export const STATUS_COLORS: Record<string, string> = {
   nuevo: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+  favorito: "bg-pink-500/20 text-pink-300 border-pink-500/30",
   revisado: "bg-amber-500/20 text-amber-300 border-amber-500/30",
   entrevista: "bg-purple-500/20 text-purple-300 border-purple-500/30",
   contratado: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
