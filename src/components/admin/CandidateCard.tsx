@@ -23,6 +23,7 @@ interface Props {
   createdAt: Date;
   tenantName: string;
   tenantSlug: string;
+  showTenant?: boolean;
 }
 
 export function CandidateCard({
@@ -33,6 +34,7 @@ export function CandidateCard({
   createdAt,
   tenantName,
   tenantSlug,
+  showTenant = true,
 }: Props) {
   const fields = asSubmissionData(data);
   const fileMap = asSubmissionFiles(files);
@@ -88,7 +90,9 @@ export function CandidateCard({
               <span className={`px-1.5 py-0.5 text-[9px] font-bold uppercase rounded border ${STATUS_COLORS[status] ?? STATUS_COLORS.nuevo}`}>
                 {STATUS_LABELS[status] ?? status}
               </span>
-              <span className="text-[10px] text-slate-500 truncate max-w-[8rem]">{tenantName}</span>
+              {showTenant && (
+                <span className="text-[10px] text-slate-500 truncate max-w-[8rem]">{tenantName}</span>
+              )}
               {salary != null && (
                 <span className="text-[10px] font-medium text-amber-300/90">{formatSalary(fields.sueldo_aspirado)}</span>
               )}

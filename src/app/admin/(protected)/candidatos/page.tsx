@@ -32,12 +32,18 @@ export default async function CandidatosPage({ searchParams }: Props) {
   const orden = params.orden ?? "";
   const agrupar = params.agrupar ?? "";
 
-  const [submissions, tenants] = await Promise.all([
+  const [submissions, tenants, tenantInfo] = await Promise.all([
     prisma.submission.findMany({
       include: { tenant: { select: { name: true, slug: true, primaryColor: true } } },
       orderBy: { createdAt: "desc" },
+      ...(tenantSession ? { where: { tenant: { slug: tenantSession } } } : {}),
     }),
-    prisma.tenant.findMany({ orderBy: { name: "asc" }, select: { slug: true, name: true } }),
+    tenantSession
+      ? []
+      : prisma.tenant.findMany({ orderBy: { name: "asc" }, select: { slug: true, name: true } }),
+    tenantSession
+      ? prisma.tenant.findUnique({ where: { slug: tenantSession }, select: { name: true } })
+      : null,
   ]);
 
   let filtered = submissions.filter((sub) => {
@@ -103,15 +109,20 @@ export default async function CandidatosPage({ searchParams }: Props) {
         createdAt={sub.createdAt}
         tenantName={sub.tenant.name}
         tenantSlug={sub.tenant.slug}
+        showTenant={!tenantSession}
       />
     ));
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <header className="tl-page-header">
-        <h1 className="tl-page-title">{tenantSession ? "Mis candidatos" : "Candidatos"}</h1>
+        <h1 className="tl-page-title">
+          {tenantSession && tenantInfo ? tenantInfo.name : tenantSession ? "Mis candidatos" : "Candidatos"}
+        </h1>
         <p className="tl-page-sub">
-          {filtered.length} de {submissions.length} registros
+          {tenantSession
+            ? `${filtered.length} solicitudes de tu empresa`
+            : `${filtered.length} de ${submissions.length} registros`}
         </p>
       </header>
 

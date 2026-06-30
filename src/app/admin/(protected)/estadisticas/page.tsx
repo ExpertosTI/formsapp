@@ -75,7 +75,7 @@ export default async function EstadisticasPage({ searchParams }: Props) {
         <h1 className="tl-page-title">Estadísticas</h1>
         <p className="tl-page-sub">
           {submissions.length} candidatos
-          {empresaFilter ? ` · filtro activo` : " · todas las empresas"}
+          {empresaFilter ? "" : " · vista global (interno)"}
         </p>
       </header>
 

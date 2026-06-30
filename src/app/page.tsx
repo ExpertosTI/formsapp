@@ -1,85 +1,62 @@
 import Link from "next/link";
-import {
-  Sparkles,
-  Building2,
-  Brain,
-  Shield,
-  ArrowRight,
-  Users,
-  Zap,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowRight, Shield, ClipboardList, Palette } from "lucide-react";
+import { TalentoLinkLogo } from "@/components/brand/TalentoLinkLogo";
 
 export default function Home() {
   return (
     <main className="relative min-h-screen min-h-[100dvh] overflow-hidden">
       <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[min(600px,100vw)] h-[min(600px,100vw)] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none animate-tl-float" />
 
-      <header className="relative z-10 flex items-center justify-between max-w-6xl px-4 py-5 mx-auto sm:px-6 sm:py-6 animate-tl-fade-in">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-teal-400 to-indigo-500 shadow-glow">
-            <Sparkles className="w-4 h-4 text-[var(--tl-bg)]" />
-          </div>
-          <span className="font-bold text-white">TalentoLink</span>
-        </div>
-        <Link href="/admin" className="tl-btn-ghost text-xs px-4 py-2">
-          Admin
+      <header className="relative z-10 flex items-center justify-between max-w-6xl px-4 py-5 mx-auto sm:px-6 sm:py-6">
+        <TalentoLinkLogo size="sm" />
+        <Link href="/admin/login" className="tl-btn-ghost text-xs px-4 py-2">
+          Acceder
         </Link>
       </header>
 
-      <section className="relative z-10 max-w-6xl px-4 pt-8 pb-20 mx-auto text-center sm:px-6 sm:pt-12 sm:pb-24">
-        <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 sm:mb-8 text-xs font-medium rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-200 animate-tl-scale-in">
-          <Zap className="w-3 h-3" />
-          IA ligera · 6 empresas · 535 candidatos
-        </div>
-
-        <h1 className="max-w-4xl mx-auto text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl animate-tl-fade-in">
-          Tu talento,{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-cyan-300 to-indigo-400">
-            conectado
+      <section className="relative z-10 max-w-6xl px-4 pt-8 pb-16 mx-auto text-center sm:px-6 sm:pt-12 sm:pb-20">
+        <h1 className="max-w-3xl mx-auto text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl animate-tl-fade-in">
+          Recluta personal para{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-indigo-400">
+            tu empresa
           </span>
         </h1>
-        <p className="max-w-2xl mx-auto mt-5 sm:mt-6 text-base sm:text-lg leading-relaxed text-slate-400 animate-tl-fade-in">
-          Plataforma multi-empresa para formularios de empleo. Resúmenes inteligentes,
-          perfiles estilo LinkedIn y gestión centralizada — sin perder un solo dato.
+        <p className="max-w-xl mx-auto mt-5 text-base leading-relaxed text-slate-400 sm:text-lg animate-tl-fade-in">
+          Formulario de empleo con tu marca, solicitudes organizadas y panel privado
+          para revisar candidatos — solo los tuyos.
         </p>
 
-        <div className="flex flex-col items-stretch justify-center gap-3 mt-8 sm:mt-10 sm:flex-row sm:items-center max-w-md sm:max-w-none mx-auto animate-tl-fade-in">
-          <Link href="/admin" className="tl-btn-primary px-8 py-3.5 text-base justify-center">
-            Panel de control
+        <div className="flex flex-col items-stretch justify-center gap-3 mt-8 max-w-sm mx-auto sm:max-w-none sm:flex-row sm:items-center animate-tl-fade-in">
+          <Link href="/admin/login" className="tl-btn-primary px-8 py-3.5 text-base justify-center">
+            Entrar al panel
             <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link href="/admin/candidatos" className="tl-btn-ghost px-8 py-3.5 text-base justify-center">
-            <Users className="w-4 h-4" />
-            Explorar candidatos
           </Link>
         </div>
       </section>
 
-      <section className="relative z-10 max-w-6xl px-4 pb-20 mx-auto sm:px-6 sm:pb-24">
-        <div className="grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 tl-stagger">
+      <section className="relative z-10 max-w-6xl px-4 pb-20 mx-auto sm:px-6">
+        <div className="grid gap-4 sm:grid-cols-3 tl-stagger">
           {[
             {
-              icon: Building2,
-              title: "Multi-empresa",
-              desc: "Cada organización con su marca, colores y formulario propio.",
-              color: "text-indigo-400",
+              icon: Palette,
+              title: "Tu marca",
+              desc: "Colores, logo y formulario con la imagen de tu negocio.",
             },
             {
-              icon: Brain,
-              title: "IA no invasiva",
-              desc: "Resúmenes automáticos al abrir un perfil. Tú decides, la IA asiste.",
-              color: "text-violet-400",
+              icon: ClipboardList,
+              title: "Solicitudes",
+              desc: "Cada postulante queda registrado con foto, CV y datos completos.",
             },
             {
               icon: Shield,
-              title: "Datos eternos",
-              desc: "Nunca se borran solicitudes. Solo estados y archivo.",
-              color: "text-teal-400",
+              title: "Datos privados",
+              desc: "Los candidatos de tu empresa no se comparten con otras organizaciones.",
             },
-          ].map(({ icon: Icon, title, desc, color }) => (
-            <div key={title} className="tl-card-hover p-6 text-left sm:col-span-1 last:sm:col-span-2 last:lg:col-span-1">
-              <Icon className={cn("w-8 h-8 mb-4 transition-transform duration-300 group-hover:scale-110", color)} />
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="tl-card-hover p-5 sm:p-6 text-left">
+              <div className="flex items-center justify-center w-10 h-10 mb-4 rounded-xl bg-teal-500/10">
+                <Icon className="w-5 h-5 text-teal-400" />
+              </div>
               <h3 className="mb-2 font-bold text-white">{title}</h3>
               <p className="text-sm leading-relaxed text-slate-400">{desc}</p>
             </div>
