@@ -8,6 +8,7 @@ import {
   parseSalary,
   salaryBucket,
 } from "@/lib/candidate";
+import { parseScoring, computeCandidateScore } from "@/lib/scoring";
 import { getTenantSession } from "@/lib/tenant-auth";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,12 @@ export default async function CandidatosPage({ searchParams }: Props) {
     filtered = [...filtered].sort((a, b) => (parseSalary(asSubmissionData(a.data).sueldo_aspirado) ?? 0) - (parseSalary(asSubmissionData(b.data).sueldo_aspirado) ?? 0));
   } else if (orden === "nombre") {
     filtered = [...filtered].sort((a, b) => getCandidateName(asSubmissionData(a.data)).localeCompare(getCandidateName(asSubmissionData(b.data))));
+  } else if (orden === "puntuacion_desc") {
+    filtered = [...filtered].sort((a, b) => {
+      const sa = parseScoring(asSubmissionData(a.data)) ?? computeCandidateScore(asSubmissionData(a.data));
+      const sb = parseScoring(asSubmissionData(b.data)) ?? computeCandidateScore(asSubmissionData(b.data));
+      return sb.overall - sa.overall;
+    });
   }
 
   const groups: { label: string; items: typeof filtered }[] = [];

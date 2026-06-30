@@ -82,6 +82,7 @@ export function CandidateSearch({
           <option value="sueldo_desc">Sueldo: mayor a menor</option>
           <option value="sueldo_asc">Sueldo: menor a mayor</option>
           <option value="nombre">Nombre A-Z</option>
+          <option value="puntuacion_desc">Puntuación: mayor a menor</option>
         </select>
 
         <select value={agrupar} onChange={(e) => setAgrupar(e.target.value)} className="w-full px-4 py-2.5 text-sm tl-input">

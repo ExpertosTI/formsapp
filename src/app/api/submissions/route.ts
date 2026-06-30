@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { buildFormSections, type TenantSettings } from "@/lib/form-config";
+import { computeCandidateScore, type FormTelemetry } from "@/lib/scoring";
 
 const UPLOADS = path.join(process.cwd(), "public", "uploads");
 
@@ -19,6 +21,15 @@ async function saveUpload(file: File, key: string): Promise<string> {
   const buf = Buffer.from(await file.arrayBuffer());
   fs.writeFileSync(dest, buf);
   return filename;
+}
+
+function parseTelemetry(raw: unknown): FormTelemetry | undefined {
+  if (typeof raw !== "string" || !raw.trim()) return undefined;
+  try {
+    return JSON.parse(raw) as FormTelemetry;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -38,9 +49,11 @@ export async function POST(req: NextRequest) {
     const sections = buildFormSections(settings);
     const datos: Record<string, string> = {};
     const archivos: Record<string, string> = {};
+    const telemetry = parseTelemetry(formData.get("_telemetry"));
 
     for (const section of sections) {
       for (const field of section.fields) {
+        if (field.key.startsWith("_")) continue;
         const val = formData.get(field.key);
         if (field.type === "file") {
           if (val instanceof File && val.size > 0) {
@@ -60,6 +73,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const scoring = computeCandidateScore(datos, telemetry);
+
     const prefix = slug.slice(0, 3).toUpperCase();
     const id = makeId(prefix);
 
@@ -67,13 +82,13 @@ export async function POST(req: NextRequest) {
       data: {
         id,
         tenantId: tenant.id,
-        data: datos,
+        data: { ...datos, _scoring: scoring } as unknown as Prisma.InputJsonValue,
         files: archivos,
         status: "nuevo",
       },
     });
 
-    return NextResponse.json({ ok: true, id });
+    return NextResponse.json({ ok: true, id, score: scoring.overall });
   } catch (e) {
     console.error("submission create error", e);
     return NextResponse.json({ error: "Error al guardar solicitud" }, { status: 500 });

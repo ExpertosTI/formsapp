@@ -101,6 +101,8 @@ export function matchesSearch(data: SubmissionData, query: string): boolean {
     data.celular,
     data.oficio_profesion,
     data.experiencia,
+    data.sectores_experiencia,
+    data.habilidades,
     data.direccion,
   ]
     .filter(Boolean)
@@ -119,6 +121,11 @@ export const FIELD_LABELS: Record<string, string> = {
   sexo: "Sexo",
   estado_civil: "Estado civil",
   direccion: "Dirección",
+  provincia: "Provincia",
+  ciudad: "Ciudad",
+  sectores_experiencia: "Sectores de experiencia",
+  habilidades: "Habilidades",
+  linkedin_url: "LinkedIn",
   celular: "Celular",
   correo: "Correo",
   oficio_profesion: "Oficio / Profesión",
@@ -149,6 +156,18 @@ export const FIELD_LABELS: Record<string, string> = {
   cual_deporte: "Cuál deporte",
 };
 
+export function getCandidateLocation(data: SubmissionData): string {
+  const parts = [data.ciudad, data.provincia].filter((v) => v && String(v).trim());
+  if (parts.length) return parts.map(String).join(", ");
+  return String(data.direccion ?? "").trim() || "";
+}
+
+export function getSectores(data: SubmissionData): string[] {
+  const raw = String(data.sectores_experiencia ?? "").trim();
+  if (!raw) return [];
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
 export function groupFields(data: SubmissionData) {
   const groups: { title: string; keys: string[] }[] = [
     {
@@ -163,6 +182,8 @@ export function groupFields(data: SubmissionData) {
         "sexo",
         "estado_civil",
         "direccion",
+        "provincia",
+        "ciudad",
         "celular",
         "correo",
         "tel_casa",
@@ -172,6 +193,9 @@ export function groupFields(data: SubmissionData) {
       title: "Perfil profesional",
       keys: [
         "oficio_profesion",
+        "sectores_experiencia",
+        "habilidades",
+        "linkedin_url",
         "sueldo_aspirado",
         "experiencia",
         "trabajando_actualmente",
@@ -214,7 +238,7 @@ export function groupFields(data: SubmissionData) {
     .map((group) => ({
       title: group.title,
       fields: group.keys
-        .filter((key) => data[key] != null && String(data[key]).trim() !== "")
+        .filter((key) => !key.startsWith("_") && data[key] != null && String(data[key]).trim() !== "")
         .map((key) => ({
           key,
           label: FIELD_LABELS[key] ?? key.replace(/_/g, " "),

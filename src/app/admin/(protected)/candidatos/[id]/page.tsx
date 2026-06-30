@@ -6,6 +6,7 @@ import {
   Building2,
   Download,
   FileText,
+  Linkedin,
   Mail,
   MapPin,
   Phone,
@@ -17,15 +18,19 @@ import {
   asSubmissionFiles,
   getCandidateHeadline,
   getCandidateName,
+  getCandidateLocation,
+  getSectores,
   formatSalary,
   groupFields,
   STATUS_COLORS,
   STATUS_LABELS,
 } from "@/lib/candidate";
+import { computeCandidateScore, parseScoring } from "@/lib/scoring";
 import { uploadUrl } from "@/lib/files";
 import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import { AiInsightPanel } from "@/components/admin/AiInsightPanel";
 import { CandidateAvatar } from "@/components/admin/CandidateAvatar";
+import { ScorePanel } from "@/components/admin/ScorePanel";
 import { getCvFilename, getPhotoFilename, isPdfFilename } from "@/lib/candidate";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +56,9 @@ export default async function CandidatoDetailPage({ params }: Props) {
   const positions = suggestPositions(data);
   const cv = getCvFilename(files);
   const photo = getPhotoFilename(files);
+  const location = getCandidateLocation(data);
+  const sectores = getSectores(data);
+  const scoring = parseScoring(data) ?? computeCandidateScore(data);
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -81,10 +89,10 @@ export default async function CandidatoDetailPage({ params }: Props) {
                     <Building2 className="w-4 h-4" />
                     {submission.tenant.name}
                   </span>
-                  {data.direccion && (
+                  {location && (
                     <span className="flex items-center gap-1">
                       <MapPin className="w-4 h-4" />
-                      {String(data.direccion)}
+                      {location}
                     </span>
                   )}
                 </div>
@@ -106,12 +114,27 @@ export default async function CandidatoDetailPage({ params }: Props) {
                 {String(data.celular)}
               </a>
             )}
+            {data.linkedin_url && (
+              <a href={String(data.linkedin_url)} target="_blank" rel="noopener noreferrer" className="tl-btn-ghost text-xs">
+                <Linkedin className="w-4 h-4 text-teal-400" />
+                LinkedIn
+              </a>
+            )}
             <span
               className={`px-3 py-2 text-xs font-bold uppercase rounded-xl border ${STATUS_COLORS[submission.status] ?? STATUS_COLORS.nuevo}`}
             >
               {STATUS_LABELS[submission.status] ?? submission.status}
             </span>
           </div>
+          {sectores.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-4">
+              {sectores.map((s) => (
+                <span key={s} className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-indigo-500/15 text-indigo-200 border border-indigo-500/20">
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -175,6 +198,7 @@ export default async function CandidatoDetailPage({ params }: Props) {
               <p className="mt-3 text-sm text-amber-300">{formatSalary(data.sueldo_aspirado)}</p>
             )}
           </div>
+          <ScorePanel scoring={scoring} />
           <AiInsightPanel submissionId={submission.id} />
           <div className="tl-card p-4 text-xs text-slate-500">
             <p>Registrado {submission.createdAt.toLocaleString("es-DO")}</p>

@@ -10,6 +10,7 @@ import {
   STATUS_COLORS,
   STATUS_LABELS,
 } from "@/lib/candidate";
+import { computeCandidateScore, parseScoring, getScoreColor } from "@/lib/scoring";
 import { CandidateAvatar } from "@/components/admin/CandidateAvatar";
 import { FileThumbnails } from "@/components/admin/FileThumbnails";
 
@@ -37,6 +38,8 @@ export function CandidateCard({
   const name = getCandidateName(fields);
   const headline = getCandidateHeadline(fields);
   const salary = parseSalary(fields.sueldo_aspirado);
+  const scoring = parseScoring(fields) ?? computeCandidateScore(fields);
+  const scoreColor = getScoreColor(scoring.grade);
 
   return (
     <Link href={`/admin/candidatos/${id}`} className="block p-4 sm:p-5 tl-card-hover group">
@@ -55,6 +58,9 @@ export function CandidateCard({
           <div className="flex flex-wrap items-center gap-2 mt-2">
             <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${STATUS_COLORS[status] ?? STATUS_COLORS.nuevo}`}>
               {STATUS_LABELS[status] ?? status}
+            </span>
+            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${scoreColor}`}>
+              {scoring.overall} pts
             </span>
             <span className="flex items-center gap-1 text-xs text-slate-500">
               <Building2 className="w-3 h-3" />
