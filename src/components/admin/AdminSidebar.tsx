@@ -7,12 +7,12 @@ import {
   Users,
   Building2,
   LogOut,
-  Sparkles,
   ExternalLink,
   X,
   BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TalentoLinkLogo } from "@/components/brand/TalentoLinkLogo";
 
 const navSuper = [
   { href: "/admin", label: "Inicio", icon: LayoutDashboard, exact: true as const },
@@ -58,18 +58,8 @@ export function AdminSidebar({ mobileOpen = false, onClose, tenantSlug = null }:
         style={{ transitionDuration: "350ms" }}
       >
         <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-          <Link href="/admin" className="flex items-center gap-3 group" onClick={onClose}>
-            <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-teal-400 to-indigo-500 shadow-glow transition-transform duration-300 group-hover:scale-105">
-              <Sparkles className="w-5 h-5 text-[var(--tl-bg)]" />
-            </div>
-            <div>
-              <p className="text-sm font-bold tracking-tight text-white group-hover:text-teal-300 transition-colors duration-300">
-                TalentoLink
-              </p>
-              <p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
-                forms.renace.tech
-              </p>
-            </div>
+          <Link href="/admin" className="group" onClick={onClose}>
+            <TalentoLinkLogo size="md" />
           </Link>
           <button
             type="button"

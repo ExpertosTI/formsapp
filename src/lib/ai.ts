@@ -107,6 +107,8 @@ export function suggestPositions(data: SubmissionData): string[] {
   const text = [
     data.oficio_profesion,
     data.experiencia,
+    data.rubros_laborales,
+    data.sectores_experiencia,
     data.especialidad,
     data.secundaria,
     data.universitaria,

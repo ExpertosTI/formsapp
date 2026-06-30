@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Moon, Shield, Sparkles, Sun, Clock } from "lucide-react";
+import { ArrowRight, Moon, Sun } from "lucide-react";
 import type { FormSection, ThemeMode } from "@/lib/form-config";
 import { TenantApplicationForm } from "./TenantApplicationForm";
 import { TenantBrandLogo } from "./TenantBrandLogo";
+import { TalentoLinkLogo } from "@/components/brand/TalentoLinkLogo";
 import { useFormTheme, type FormColorMode } from "@/hooks/useFormTelemetry";
 
 interface TenantTheme {
@@ -36,16 +37,13 @@ export function TenantFormExperience({
 
   const instructions =
     introText ??
-    "Completa el formulario con información verídica. Adjunta tu CV actualizado y una foto reciente. Tu perfil será evaluado automáticamente para encontrar el mejor puesto.";
+    "Completa cada paso con información verídica. Necesitarás tu cédula, datos de contacto, CV en PDF y una foto reciente.";
 
   return (
     <FormShell mode={mode} theme={theme}>
       <header className="form-header">
         <div className="flex items-center justify-between w-full max-w-2xl px-4 py-4 mx-auto sm:px-6">
-          <div className="flex items-center gap-2 text-xs form-muted">
-            <Sparkles className="w-3.5 h-3.5" style={{ color: theme.accent }} />
-            <span className="font-semibold tracking-wide">TalentoLink</span>
-          </div>
+          <TalentoLinkLogo size="sm" />
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -62,26 +60,22 @@ export function TenantFormExperience({
         </div>
       </header>
 
-      <main className="flex flex-col items-center flex-1 px-4 py-8 sm:py-12 tl-page-enter">
-        <div className="w-full max-w-lg text-center mb-8">
+      <main className="flex flex-col items-center flex-1 px-4 py-8 sm:py-10 tl-page-enter">
+        <div className="w-full max-w-lg text-center mb-6">
           <TenantBrandLogo
             name={tenantName}
             primary={theme.primary}
             accent={theme.accent}
             size="md"
-            className="mb-5"
+            className="mb-4"
           />
-          <h1 className="text-xl font-bold form-title sm:text-3xl tracking-tight">{tenantName}</h1>
-          <p className="mt-2 text-sm form-muted">Solicitud de empleo</p>
+          <h1 className="text-xl font-bold form-title sm:text-2xl tracking-tight">{tenantName}</h1>
+          <p className="mt-1.5 text-sm form-muted">Solicitud de empleo</p>
         </div>
 
         <div className="w-full max-w-lg">
           {!started ? (
-            <IntroCard
-              instructions={instructions}
-              theme={theme}
-              onStart={() => setStarted(true)}
-            />
+            <IntroCard instructions={instructions} theme={theme} onStart={() => setStarted(true)} />
           ) : (
             <TenantApplicationForm
               slug={slug}
@@ -93,9 +87,7 @@ export function TenantFormExperience({
           )}
         </div>
 
-        <p className="mt-8 text-[10px] form-footer">
-          Powered by TalentoLink · Tus datos están protegidos
-        </p>
+        <p className="mt-6 text-[10px] form-footer">Tus datos están protegidos</p>
       </main>
     </FormShell>
   );
@@ -112,42 +104,13 @@ function IntroCard({
 }) {
   return (
     <div className="form-card p-6 sm:p-8 animate-tl-scale-in">
-      <div
-        className="absolute inset-x-0 top-0 h-px opacity-60"
-        style={{ background: `linear-gradient(90deg, transparent, ${theme.accent}, transparent)` }}
-      />
-
-      <div className="flex items-center gap-2 mb-4">
-        <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: theme.accent }} />
-        <h2 className="text-lg font-semibold form-title">Instrucciones</h2>
-      </div>
-
-      <p className="text-sm leading-relaxed form-muted mb-6">{instructions}</p>
-
-      <div className="grid gap-3 mb-8 sm:grid-cols-3">
-        {[
-          { icon: Clock, label: "~5 min", sub: "Formulario corto" },
-          { icon: Shield, label: "Seguro", sub: "Datos protegidos" },
-          { icon: Sparkles, label: "IA", sub: "Evaluación automática" },
-        ].map(({ icon: Icon, label, sub }) => (
-          <div key={label} className="form-stat-pill">
-            <Icon className="w-4 h-4 mx-auto mb-1 opacity-70" style={{ color: theme.accent }} />
-            <p className="text-xs font-semibold form-title">{label}</p>
-            <p className="text-[10px] form-muted">{sub}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="p-4 mb-6 rounded-xl border border-dashed form-dashed">
-        <p className="text-xs text-center form-muted">
-          Perfil tipo LinkedIn · Ubicación · Sectores · Puntuación inteligente
-        </p>
-      </div>
+      <h2 className="mb-3 text-lg font-semibold form-title">Antes de empezar</h2>
+      <p className="text-sm leading-relaxed form-muted mb-8">{instructions}</p>
 
       <button
         type="button"
         onClick={onStart}
-        className="w-full py-3.5 text-sm font-semibold rounded-xl text-white transition-all hover:opacity-95 active:scale-[0.98] shadow-lg"
+        className="w-full py-3.5 text-sm font-semibold rounded-xl text-white transition-all hover:opacity-95 active:scale-[0.98]"
         style={{
           background: `linear-gradient(135deg, ${theme.accent}, ${theme.primary})`,
           boxShadow: `0 12px 32px -8px ${theme.primary}88`,

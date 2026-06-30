@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, Send } from "lucide-react";
 import type { FormSection } from "@/lib/form-config";
 import { useFormTelemetry, type FormColorMode } from "@/hooks/useFormTelemetry";
+import { RdLocationFields } from "./RdLocationFields";
 
 interface TenantTheme {
   primary: string;
@@ -76,7 +77,7 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
     for (const section of sections) {
       for (const field of section.fields) {
         if (field.type === "multiselect" && field.required && !(multiValues[field.key] ?? []).length) {
-          setError(`Selecciona al menos un sector: ${field.label}`);
+          setError(`Selecciona al menos una opción: ${field.label}`);
           setLoading(false);
           return;
         }
@@ -139,18 +140,18 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
       <p className="mb-1 text-[10px] font-bold uppercase tracking-widest form-muted">
         Paso {step + 1} de {sections.length}
       </p>
-      <h2 className="mb-1 text-lg font-semibold form-title">{current.title}</h2>
-      {current.subtitle && <p className="mb-6 text-xs form-muted">{current.subtitle}</p>}
-      {!current.subtitle && <div className="mb-6" />}
+      <h2 className="mb-5 text-lg font-semibold form-title">{current.title}</h2>
 
       <div className="space-y-4">
-        {current.fields.map((field) => (
+        {current.fields.map((field) =>
+          field.type === "location" ? (
+            <RdLocationFields key={field.key} onFocus={onFieldFocus} />
+          ) : (
           <div key={field.key}>
             <label className="form-label">
               {field.label}
               {field.required ? " *" : ""}
             </label>
-            {field.hint && <p className="mb-1.5 text-[10px] form-muted">{field.hint}</p>}
 
             {field.type === "textarea" ? (
               <textarea
@@ -219,7 +220,8 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
               />
             )}
           </div>
-        ))}
+          )
+        )}
       </div>
 
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}

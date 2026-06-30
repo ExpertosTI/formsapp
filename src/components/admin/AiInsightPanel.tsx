@@ -48,7 +48,7 @@ export function AiInsightPanel({ submissionId, className }: Props) {
           )}
         </div>
         <div>
-          <p className="text-sm font-semibold text-white">Resumen inteligente</p>
+          <p className="text-sm font-semibold text-white">Resumen</p>
           <span className="tl-badge-ai">{insight?.source === "ai" ? "IA" : "Auto"}</span>
         </div>
       </div>

@@ -8,9 +8,8 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "TalentoLink — Inteligencia para tu talento",
-  description:
-    "Plataforma multi-empresa con IA ligera para gestión de candidatos y formularios de empleo.",
+  title: "TalentoLink — Formularios de empleo",
+  description: "Plataforma multi-empresa para solicitudes de empleo y gestión de candidatos.",
 };
 
 export default function RootLayout({

@@ -19,7 +19,7 @@ import {
   getCandidateHeadline,
   getCandidateName,
   getCandidateLocation,
-  getSectores,
+  getRubros,
   formatSalary,
   groupFields,
   STATUS_COLORS,
@@ -57,7 +57,7 @@ export default async function CandidatoDetailPage({ params }: Props) {
   const cv = getCvFilename(files);
   const photo = getPhotoFilename(files);
   const location = getCandidateLocation(data);
-  const sectores = getSectores(data);
+  const rubros = getRubros(data);
   const scoring = parseScoring(data) ?? computeCandidateScore(data);
 
   return (
@@ -114,10 +114,10 @@ export default async function CandidatoDetailPage({ params }: Props) {
                 {String(data.celular)}
               </a>
             )}
-            {data.linkedin_url && (
-              <a href={String(data.linkedin_url)} target="_blank" rel="noopener noreferrer" className="tl-btn-ghost text-xs">
+            {(data.red_profesional || data.linkedin_url) && (
+              <a href={String(data.red_profesional ?? data.linkedin_url)} target="_blank" rel="noopener noreferrer" className="tl-btn-ghost text-xs">
                 <Linkedin className="w-4 h-4 text-teal-400" />
-                LinkedIn
+                Perfil web
               </a>
             )}
             <span
@@ -126,9 +126,9 @@ export default async function CandidatoDetailPage({ params }: Props) {
               {STATUS_LABELS[submission.status] ?? submission.status}
             </span>
           </div>
-          {sectores.length > 0 && (
+          {rubros.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-4">
-              {sectores.map((s) => (
+              {rubros.map((s) => (
                 <span key={s} className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-indigo-500/15 text-indigo-200 border border-indigo-500/20">
                   {s}
                 </span>

@@ -112,9 +112,11 @@ function professionalismScore(data: SubmissionData): { score: number; flags: str
     flags.push("Apellido en minúsculas");
   }
 
-  if (data.linkedin_url && String(data.linkedin_url).includes("linkedin")) points += 10;
+  if (data.red_profesional && String(data.red_profesional).startsWith("http")) points += 6;
+  if (data.linkedin_url && String(data.linkedin_url).includes("http")) points += 6;
+  if (data.rubros_laborales && String(data.rubros_laborales).split(",").length >= 2) points += 8;
   if (data.sectores_experiencia && String(data.sectores_experiencia).split(",").length >= 2) points += 8;
-  if (data.provincia && data.ciudad) points += 8;
+  if (data.provincia && data.ciudad && data.sector) points += 10;
   if (data.habilidades && String(data.habilidades).length > 15) points += 6;
 
   const disp = String(data.tiempo_disponible ?? "").toLowerCase();
@@ -139,7 +141,8 @@ function completenessScore(data: SubmissionData, telemetry?: FormTelemetry): num
     "tiempo_disponible",
     "provincia",
     "ciudad",
-    "sectores_experiencia",
+    "sector",
+    "rubros_laborales",
   ];
   const filled = important.filter((k) => String(data[k] ?? "").trim()).length;
   let score = (filled / important.length) * 100;

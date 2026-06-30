@@ -1,3 +1,5 @@
+import { formatLocation } from "./rd-locations";
+
 export type SubmissionData = Record<string, string | number | boolean | null | undefined>;
 export type SubmissionFiles = Record<string, string>;
 
@@ -101,8 +103,11 @@ export function matchesSearch(data: SubmissionData, query: string): boolean {
     data.celular,
     data.oficio_profesion,
     data.experiencia,
+    data.sector,
+    data.ciudad,
+    data.provincia,
+    data.rubros_laborales,
     data.sectores_experiencia,
-    data.habilidades,
     data.direccion,
   ]
     .filter(Boolean)
@@ -123,9 +128,12 @@ export const FIELD_LABELS: Record<string, string> = {
   direccion: "Dirección",
   provincia: "Provincia",
   ciudad: "Ciudad",
-  sectores_experiencia: "Sectores de experiencia",
+  sector: "Sector / Barrio",
+  rubros_laborales: "Rubros laborales",
+  sectores_experiencia: "Rubros laborales",
   habilidades: "Habilidades",
-  linkedin_url: "LinkedIn",
+  red_profesional: "Red profesional",
+  linkedin_url: "Red profesional",
   celular: "Celular",
   correo: "Correo",
   oficio_profesion: "Oficio / Profesión",
@@ -157,15 +165,23 @@ export const FIELD_LABELS: Record<string, string> = {
 };
 
 export function getCandidateLocation(data: SubmissionData): string {
-  const parts = [data.ciudad, data.provincia].filter((v) => v && String(v).trim());
-  if (parts.length) return parts.map(String).join(", ");
-  return String(data.direccion ?? "").trim() || "";
+  return formatLocation({
+    provincia: data.provincia,
+    ciudad: data.ciudad,
+    sector: data.sector,
+    direccion: data.direccion,
+  });
 }
 
-export function getSectores(data: SubmissionData): string[] {
-  const raw = String(data.sectores_experiencia ?? "").trim();
+export function getRubros(data: SubmissionData): string[] {
+  const raw = String(data.rubros_laborales ?? data.sectores_experiencia ?? "").trim();
   if (!raw) return [];
   return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+/** @deprecated use getRubros */
+export function getSectores(data: SubmissionData): string[] {
+  return getRubros(data);
 }
 
 export function groupFields(data: SubmissionData) {
@@ -182,6 +198,7 @@ export function groupFields(data: SubmissionData) {
         "sexo",
         "estado_civil",
         "direccion",
+        "sector",
         "provincia",
         "ciudad",
         "celular",
@@ -193,8 +210,10 @@ export function groupFields(data: SubmissionData) {
       title: "Perfil profesional",
       keys: [
         "oficio_profesion",
+        "rubros_laborales",
         "sectores_experiencia",
         "habilidades",
+        "red_profesional",
         "linkedin_url",
         "sueldo_aspirado",
         "experiencia",

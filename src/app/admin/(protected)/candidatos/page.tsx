@@ -71,6 +71,17 @@ export default async function CandidatosPage({ searchParams }: Props) {
       map.get(bucket)!.push(sub);
     }
     for (const [label, items] of map) groups.push({ label, items });
+  } else if (agrupar === "sector") {
+    const map = new Map<string, typeof filtered>();
+    for (const sub of filtered) {
+      const d = asSubmissionData(sub.data);
+      const label = String(d.sector ?? d.ciudad ?? "Sin sector").trim() || "Sin sector";
+      if (!map.has(label)) map.set(label, []);
+      map.get(label)!.push(sub);
+    }
+    for (const [label, items] of [...map].sort((a, b) => b[1].length - a[1].length)) {
+      groups.push({ label, items });
+    }
   } else if (agrupar === "empresa") {
     const map = new Map<string, typeof filtered>();
     for (const sub of filtered) {
@@ -101,7 +112,6 @@ export default async function CandidatosPage({ searchParams }: Props) {
         <h1 className="tl-page-title">{tenantSession ? "Mis candidatos" : "Candidatos"}</h1>
         <p className="tl-page-sub">
           {filtered.length} de {submissions.length} registros
-          {tenantSession ? "" : " · fotos y CV en miniatura"}
         </p>
       </header>
 
@@ -115,18 +125,20 @@ export default async function CandidatosPage({ searchParams }: Props) {
         lockEmpresa={tenantSession ?? undefined}
       />
 
-      <div className="mt-6 space-y-6">
+      <div className="mt-6">
         {agrupar && groups.length > 0 ? (
-          groups.map((g) => (
+          <div className="space-y-8">
+          {groups.map((g) => (
             <section key={g.label}>
-              <h2 className="mb-3 text-sm font-bold tracking-wider uppercase text-teal-400">
-                {g.label} <span className="text-slate-500">({g.items.length})</span>
+              <h2 className="mb-3 text-xs font-bold tracking-wider uppercase text-slate-500">
+                {g.label} <span className="text-slate-600">({g.items.length})</span>
               </h2>
-              <div className="space-y-3 tl-stagger">{renderList(g.items)}</div>
+              <div className="grid gap-3 sm:grid-cols-2 tl-stagger">{renderList(g.items)}</div>
             </section>
-          ))
+          ))}
+          </div>
         ) : (
-          <div className="space-y-3 tl-stagger">
+          <div className="grid gap-3 sm:grid-cols-2 tl-stagger">
             {renderList(filtered)}
             {filtered.length === 0 && (
               <div className="p-12 text-center glass-card">

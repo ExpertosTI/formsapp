@@ -53,6 +53,17 @@ export async function POST(req: NextRequest) {
 
     for (const section of sections) {
       for (const field of section.fields) {
+        if (field.type === "location") {
+          for (const key of ["provincia", "ciudad", "sector", "direccion"]) {
+            const val = formData.get(key);
+            const s = val != null ? String(val).trim() : "";
+            if (!s) {
+              return NextResponse.json({ error: `Completa tu ubicación (${key})` }, { status: 400 });
+            }
+            datos[key] = s;
+          }
+          continue;
+        }
         if (field.key.startsWith("_")) continue;
         const val = formData.get(field.key);
         if (field.type === "file") {

@@ -114,7 +114,7 @@ export default async function EstadisticasPage({ searchParams }: Props) {
         </section>
 
         <section className="p-6 tl-card lg:col-span-2">
-          <h2 className="mb-4 text-xs font-bold tracking-wider uppercase text-violet-400">Puestos sugeridos (IA heurística)</h2>
+          <h2 className="mb-4 text-xs font-bold tracking-wider uppercase text-violet-400">Puestos sugeridos</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {topRoles.map(([role, count]) => (
               <Bar key={role} label={role} count={count} max={maxRole} />

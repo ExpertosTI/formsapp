@@ -14,7 +14,7 @@ export function ScorePanel({ scoring }: Props) {
       <div className="flex items-center justify-between">
         <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-violet-400">
           <Gauge className="w-3.5 h-3.5" />
-          Puntuación automática
+          Puntuación del perfil
         </p>
         <span className={`px-2.5 py-1 text-sm font-bold rounded-lg border ${color}`}>
           {scoring.overall} · {scoring.grade}
