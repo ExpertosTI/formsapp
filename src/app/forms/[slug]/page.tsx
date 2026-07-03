@@ -24,6 +24,7 @@ export default async function TenantForm({ params }: Props) {
     <TenantFormExperience
       slug={slug}
       tenantName={tenant.name}
+      logo={tenant.logo}
       sections={sections}
       theme={{ primary, accent, bg }}
       themeMode={settings.themeMode ?? "system"}

@@ -1,5 +1,7 @@
 "use client";
 
+import { logoPublicUrl } from "@/lib/tenant-branding";
+
 interface Props {
   name: string;
   logo?: string | null;
@@ -23,8 +25,9 @@ const sizes = {
 
 export function TenantBrandLogo({ name, logo, primary, accent, size = "md", className = "" }: Props) {
   const s = sizes[size];
+  const src = logoPublicUrl(logo);
 
-  if (logo) {
+  if (src) {
     return (
       <div
         className={`relative inline-flex items-center justify-center rounded-2xl border border-white/10 shadow-2xl overflow-hidden ${s.box} ${className}`}
@@ -34,7 +37,7 @@ export function TenantBrandLogo({ name, logo, primary, accent, size = "md", clas
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`/${logo}`} alt={name} className={`object-contain rounded-xl ${s.img}`} />
+        <img src={src} alt={name} className={`object-contain rounded-xl ${s.img}`} />
       </div>
     );
   }

@@ -10,6 +10,7 @@ import {
   ExternalLink,
   X,
   BarChart3,
+  Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TalentoLinkLogo } from "@/components/brand/TalentoLinkLogo";
@@ -24,6 +25,7 @@ const navSuper = [
 const navTenant = (slug: string) => [
   { href: `/admin/candidatos?empresa=${slug}`, label: "Mis candidatos", icon: Users, exact: false as const },
   { href: `/admin/estadisticas?empresa=${slug}`, label: "Estadísticas", icon: BarChart3, exact: false as const },
+  { href: "/admin/mi-empresa", label: "Mi empresa", icon: Palette, exact: true as const },
   { href: `/forms/${slug}`, label: "Mi formulario", icon: ExternalLink, exact: true as const, external: true as const },
 ];
 

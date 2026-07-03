@@ -8,10 +8,13 @@ const TITLES: Record<string, string> = {
   "/admin": "Inicio",
   "/admin/candidatos": "Candidatos",
   "/admin/empresas": "Empresas",
+  "/admin/mi-empresa": "Mi empresa",
+  "/admin/estadisticas": "Estadísticas",
 };
 
 function pageTitle(pathname: string): string {
   if (pathname.startsWith("/admin/candidatos/")) return "Perfil";
+  if (pathname.startsWith("/admin/empresas/") && pathname !== "/admin/empresas") return "Personalizar";
   for (const [path, title] of Object.entries(TITLES)) {
     if (pathname === path || (path !== "/admin" && pathname.startsWith(path))) return title;
   }

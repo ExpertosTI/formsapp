@@ -18,6 +18,7 @@ interface TenantTheme {
 interface Props {
   slug: string;
   tenantName: string;
+  logo?: string | null;
   sections: FormSection[];
   theme: TenantTheme;
   themeMode?: ThemeMode;
@@ -27,6 +28,7 @@ interface Props {
 export function TenantFormExperience({
   slug,
   tenantName,
+  logo,
   sections,
   theme,
   themeMode = "system",
@@ -64,6 +66,7 @@ export function TenantFormExperience({
         <div className="w-full max-w-lg text-center mb-6">
           <TenantBrandLogo
             name={tenantName}
+            logo={logo}
             primary={theme.primary}
             accent={theme.accent}
             size="md"
