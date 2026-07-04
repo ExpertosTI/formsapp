@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { ImagePlus, Loader2, Trash2, Check, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { TenantBrandLogo } from "@/components/forms/TenantBrandLogo";
-import { logoPublicUrl } from "@/lib/tenant-branding";
 import type { TenantSettings, ThemeMode } from "@/lib/form-config";
 
 export interface TenantBrandingInitial {
@@ -36,7 +35,8 @@ export function TenantBrandingForm({ tenant }: Props) {
   const [introText, setIntroText] = useState(settings.introText ?? "");
   const [themeMode, setThemeMode] = useState<ThemeMode>(settings.themeMode ?? "system");
   const [logoPath, setLogoPath] = useState(tenant.logo);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(logoPublicUrl(tenant.logo));
+  /** Solo blob: al elegir archivo nuevo; el logo guardado se resuelve con logoPath + slug */
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [removeLogo, setRemoveLogo] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -53,7 +53,7 @@ export function TenantBrandingForm({ tenant }: Props) {
     if (previewUrl?.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
     if (!file) {
       setLogoFile(null);
-      setPreviewUrl(removeLogo ? null : logoPublicUrl(logoPath));
+      setPreviewUrl(null);
       return;
     }
     setLogoFile(file);
@@ -101,7 +101,7 @@ export function TenantBrandingForm({ tenant }: Props) {
     setRemoveLogo(false);
     setLogoFile(null);
     if (previewUrl?.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(logoPublicUrl(updated.logo));
+    setPreviewUrl(null);
     if (fileRef.current) fileRef.current.value = "";
     setSaved(true);
     setLoading(false);
@@ -122,7 +122,8 @@ export function TenantBrandingForm({ tenant }: Props) {
         >
           <TenantBrandLogo
             name={name || tenant.name}
-            logo={previewUrl}
+            logo={previewUrl ?? logoPath}
+            tenantSlug={tenant.slug}
             primary={primaryColor}
             accent={accentColor}
             size="lg"
@@ -193,9 +194,9 @@ export function TenantBrandingForm({ tenant }: Props) {
             className="tl-btn-ghost"
           >
             <ImagePlus className="w-4 h-4" />
-            {previewUrl ? "Cambiar logo" : "Subir logo"}
+            {previewUrl || logoPath ? "Cambiar logo" : "Subir logo"}
           </button>
-          {previewUrl && (
+          {(previewUrl || logoPath) && (
             <button type="button" onClick={clearLogo} className="tl-btn-ghost text-red-300/90">
               <Trash2 className="w-4 h-4" />
               Quitar logo

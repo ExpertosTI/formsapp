@@ -28,6 +28,7 @@ export default async function EmpresasPage() {
               <TenantBrandLogo
                 name={tenant.name}
                 logo={tenant.logo}
+                tenantSlug={tenant.slug}
                 primary={tenant.primaryColor}
                 accent={tenant.accentColor}
                 size="sm"

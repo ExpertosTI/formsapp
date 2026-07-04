@@ -24,9 +24,15 @@ export async function GET(
       const type =
         ext === ".pdf"
           ? "application/pdf"
-          : ext.match(/\.(jpe?g|png|gif|webp)$/)
-            ? `image/${ext.replace(".", "")}`
-            : "application/octet-stream";
+          : ext === ".png"
+            ? "image/png"
+            : ext === ".webp"
+              ? "image/webp"
+              : ext === ".gif"
+                ? "image/gif"
+                : ext === ".jpg" || ext === ".jpeg"
+                  ? "image/jpeg"
+                  : "application/octet-stream";
       return new NextResponse(buf, {
         headers: {
           "Content-Type": type,

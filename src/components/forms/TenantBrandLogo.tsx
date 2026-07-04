@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { logoPublicUrl } from "@/lib/tenant-branding";
 
 interface Props {
   name: string;
   logo?: string | null;
+  tenantSlug?: string | null;
   primary: string;
   accent: string;
   size?: "sm" | "md" | "lg";
@@ -18,26 +20,43 @@ function initials(name: string): string {
 }
 
 const sizes = {
-  sm: { box: "w-12 h-12", text: "text-sm", img: "w-9 h-9" },
-  md: { box: "w-16 h-16 sm:w-20 sm:h-20", text: "text-lg sm:text-xl", img: "w-12 h-12 sm:w-16 sm:h-16" },
-  lg: { box: "w-20 h-20 sm:w-24 sm:h-24", text: "text-xl sm:text-2xl", img: "w-16 h-16 sm:w-20 sm:h-20" },
+  sm: { box: "w-12 h-12", text: "text-sm", img: "w-10 h-10" },
+  md: { box: "w-16 h-16 sm:w-20 sm:h-20", text: "text-lg sm:text-xl", img: "w-14 h-14 sm:w-[4.5rem] sm:h-[4.5rem]" },
+  lg: { box: "w-20 h-20 sm:w-24 sm:h-24", text: "text-xl sm:text-2xl", img: "w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20" },
 };
 
-export function TenantBrandLogo({ name, logo, primary, accent, size = "md", className = "" }: Props) {
+export function TenantBrandLogo({
+  name,
+  logo,
+  tenantSlug,
+  primary,
+  accent,
+  size = "md",
+  className = "",
+}: Props) {
   const s = sizes[size];
-  const src = logoPublicUrl(logo);
+  const src = logoPublicUrl(logo, tenantSlug);
+  const [failed, setFailed] = useState(false);
 
-  if (src) {
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
+  if (src && !failed) {
     return (
       <div
-        className={`relative inline-flex items-center justify-center rounded-2xl border border-white/10 shadow-2xl overflow-hidden ${s.box} ${className}`}
+        className={`relative inline-flex items-center justify-center rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-white ${s.box} ${className}`}
         style={{
-          background: `linear-gradient(145deg, ${primary}ee, ${accent}55)`,
           boxShadow: `0 20px 40px -12px ${primary}66`,
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={name} className={`object-contain rounded-xl ${s.img}`} />
+        <img
+          src={src}
+          alt={name}
+          className={`object-contain ${s.img}`}
+          onError={() => setFailed(true)}
+        />
       </div>
     );
   }

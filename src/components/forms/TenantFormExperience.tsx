@@ -67,6 +67,7 @@ export function TenantFormExperience({
           <TenantBrandLogo
             name={tenantName}
             logo={logo}
+            tenantSlug={slug}
             primary={theme.primary}
             accent={theme.accent}
             size="md"
