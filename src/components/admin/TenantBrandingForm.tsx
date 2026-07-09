@@ -217,7 +217,7 @@ export function TenantBrandingForm({ tenant }: Props) {
         <div className="grid gap-4 sm:grid-cols-3">
           <ColorField label="Principal" value={primaryColor} onChange={setPrimaryColor} />
           <ColorField label="Acento" value={accentColor} onChange={setAccentColor} />
-          <ColorField label="Fondo" value={backgroundColor} onChange={setBackgroundColor} />
+          <ColorField label="Contraste (fondo)" value={backgroundColor} onChange={setBackgroundColor} />
         </div>
 
         <div>
