@@ -313,8 +313,9 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
           <CheckCircle2 className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-xl font-bold form-title">¡Solicitud enviada!</h2>
-        <p className="mt-2 text-sm form-muted max-w-xs mx-auto">
-          {tenantName} recibirá tu información. Gracias por aplicar.
+        <p className="mt-2 text-sm form-muted max-w-sm mx-auto leading-relaxed">
+          {tenantName} recibirá tu información. Mantente pendiente: serás contactado para una
+          entrevista presencial. Gracias por aplicar.
         </p>
       </div>
     );
