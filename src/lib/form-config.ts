@@ -1,3 +1,5 @@
+import { PROFESIONES, DIAS_SEMANA, DISPONIBILIDAD } from "./form-options";
+
 export type FormFieldType =
   | "text"
   | "email"
@@ -112,8 +114,8 @@ function collectAllFields(settings: TenantSettings | null | undefined): FormFiel
     { key: "celular", label: "Celular", type: "tel", required: true },
     { key: "correo", label: "Correo electrónico", type: "email", required: true },
     { key: "tel_casa", label: "Teléfono de casa", type: "tel" },
-    { key: "oficio_profesion", label: "Oficio / Profesión", type: "text", required: true, placeholder: "Ej. Cajera, vendedor" },
-    { key: "sueldo_aspirado", label: "Sueldo aspirado (RD$)", type: "text", required: true, placeholder: "Ej. 25000" },
+    { key: "oficio_profesion", label: "Oficio / Profesión", type: "select", options: PROFESIONES, required: true },
+    { key: "sueldo_aspirado", label: "Sueldo aspirado (RD$)", type: "text", required: true, placeholder: "Ej. 25,000" },
     {
       key: "rubros_laborales",
       label: "Rubros laborales",
@@ -130,7 +132,7 @@ function collectAllFields(settings: TenantSettings | null | undefined): FormFiel
       { key: "experiencia", label: "Experiencia laboral", type: "textarea", required: true, placeholder: "Empresas, cargos y años…" },
       { key: "trabajando_actualmente", label: "¿Trabaja actualmente?", type: "select", options: SI_NO, required: true },
       { key: "razon_dejar_empleo", label: "Motivo de salida del empleo anterior", type: "textarea" },
-      { key: "tiempo_disponible", label: "Disponibilidad para empezar", type: "text", required: true, placeholder: "Ej. Inmediato" }
+      { key: "tiempo_disponible", label: "Disponibilidad para empezar", type: "select", options: DISPONIBILIDAD, required: true }
     );
   }
 
@@ -141,7 +143,7 @@ function collectAllFields(settings: TenantSettings | null | undefined): FormFiel
       { key: "universitaria", label: "Universitaria", type: "text" },
       { key: "especialidad", label: "Especialidad / Carrera", type: "text" },
       { key: "estudia_actualmente", label: "¿Estudia actualmente?", type: "select", options: SI_NO },
-      { key: "dia_clases", label: "Días de clases", type: "text" }
+      { key: "dia_clases", label: "Días de clases", type: "multiselect", options: DIAS_SEMANA }
     );
   }
 

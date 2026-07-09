@@ -3,15 +3,24 @@
 import { useEffect, useState } from "react";
 import { getMunicipalities, getProvinces, getSectors } from "@/lib/rd-locations";
 
-interface Props {
-  defaults?: { provincia?: string; ciudad?: string; sector?: string; direccion?: string };
-  onFocus?: () => void;
+export interface RdLocationValues {
+  provincia: string;
+  ciudad: string;
+  sector: string;
+  direccion: string;
 }
 
-export function RdLocationFields({ defaults, onFocus }: Props) {
+interface Props {
+  defaults?: Partial<RdLocationValues>;
+  onFocus?: () => void;
+  onChange?: (values: RdLocationValues) => void;
+}
+
+export function RdLocationFields({ defaults, onFocus, onChange }: Props) {
   const [provincia, setProvincia] = useState(defaults?.provincia ?? "");
   const [ciudad, setCiudad] = useState(defaults?.ciudad ?? "");
   const [sector, setSector] = useState(defaults?.sector ?? "");
+  const [direccion, setDireccion] = useState(defaults?.direccion ?? "");
 
   const municipios = provincia ? getMunicipalities(provincia) : [];
   const sectores = provincia && ciudad ? getSectors(provincia, ciudad) : [];
@@ -28,6 +37,10 @@ export function RdLocationFields({ defaults, onFocus }: Props) {
       setSector("");
     }
   }, [provincia, ciudad, sector]);
+
+  useEffect(() => {
+    onChange?.({ provincia, ciudad, sector, direccion });
+  }, [provincia, ciudad, sector, direccion, onChange]);
 
   return (
     <div className="space-y-4">
@@ -97,7 +110,8 @@ export function RdLocationFields({ defaults, onFocus }: Props) {
           name="direccion"
           type="text"
           required
-          defaultValue={defaults?.direccion}
+          value={direccion}
+          onChange={(e) => setDireccion(e.target.value)}
           placeholder="Calle, número, referencia"
           onFocus={onFocus}
           className="form-input"

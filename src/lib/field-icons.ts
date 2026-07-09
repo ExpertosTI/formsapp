@@ -30,6 +30,10 @@ import {
   HardHat,
   Shield,
   Sparkles,
+  Check,
+  X,
+  CircleDot,
+  CalendarDays,
 } from "lucide-react";
 
 export const GROUP_ICONS: Record<string, LucideIcon> = {
@@ -69,6 +73,7 @@ export const FIELD_ICONS: Record<string, LucideIcon> = {
   universitaria: GraduationCap,
   especialidad: GraduationCap,
   estudia_actualmente: GraduationCap,
+  dia_clases: CalendarDays,
   licencia_conducir: Car,
   vehiculo: Car,
   enfermedad: Stethoscope,
@@ -102,10 +107,61 @@ export function iconForGroup(title: string): LucideIcon {
 }
 
 export function iconForRubro(rubro: string): LucideIcon {
-  for (const [label, icon] of Object.entries(RUBRO_ICONS)) {
-    if (rubro.toLowerCase().includes(label.split("/")[0].trim().toLowerCase())) return icon;
-  }
-  return Briefcase;
+  return RUBRO_ICONS[rubro] ?? Briefcase;
+}
+
+const OPTION_ICONS: Record<string, LucideIcon> = {
+  Sí: Check,
+  No: X,
+  Masculino: User,
+  Femenino: User,
+  "Soltero/a": Heart,
+  "Casado/a": Heart,
+  "Unión libre": Heart,
+  "Divorciado/a": Heart,
+  "Viudo/a": Heart,
+  Inmediato: Clock,
+  "En 1 semana": Clock,
+  "En 2 semanas": Clock,
+  "En 1 mes": Calendar,
+  "A convenir": Calendar,
+  Lunes: CalendarDays,
+  Martes: CalendarDays,
+  Miércoles: CalendarDays,
+  Jueves: CalendarDays,
+  Viernes: CalendarDays,
+  Sábado: CalendarDays,
+  Domingo: CalendarDays,
+};
+
+const PROFESION_ICONS: Record<string, LucideIcon> = {
+  "Vendedor/a": TrendingUp,
+  "Cajero/a": DollarSign,
+  Recepcionista: Headphones,
+  "Asistente administrativo": FileText,
+  "Supervisor/a": Users,
+  Gerente: Briefcase,
+  Almacenista: Package,
+  "Mensajero/a": Package,
+  "Conductor/a": Car,
+  Seguridad: Shield,
+  Limpieza: Sparkles,
+  "Cocinero/a": Utensils,
+  "Mesero/a": Utensils,
+  Barista: Utensils,
+  "Estilista / Belleza": Shirt,
+  "Técnico en informática": Monitor,
+  "Contador/a": FileText,
+  "Enfermero/a": Stethoscope,
+  "Call center": Headphones,
+  Estudiante: GraduationCap,
+  Otro: CircleDot,
+};
+
+export function iconForOption(label: string, fieldKey?: string): LucideIcon {
+  if (fieldKey === "oficio_profesion") return PROFESION_ICONS[label] ?? Briefcase;
+  if (fieldKey === "rubros_laborales") return iconForRubro(label);
+  return OPTION_ICONS[label] ?? CircleDot;
 }
 
 export function parseSkills(raw: unknown): string[] {

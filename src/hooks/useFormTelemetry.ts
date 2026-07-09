@@ -3,10 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormTelemetry } from "@/lib/scoring";
 
-export function useFormTelemetry(totalFields: number) {
-  const startedAt = useRef(Date.now());
+export function useFormTelemetry(totalFields: number, initialStartedAt?: number) {
+  const startedAt = useRef(initialStartedAt ?? Date.now());
   const focusCount = useRef(0);
   const [stepCount, setStepCount] = useState(1);
+
+  useEffect(() => {
+    if (initialStartedAt) startedAt.current = initialStartedAt;
+  }, [initialStartedAt]);
 
   const onFieldFocus = useCallback(() => {
     focusCount.current += 1;
@@ -14,6 +18,12 @@ export function useFormTelemetry(totalFields: number) {
 
   const onStepChange = useCallback((step: number) => {
     setStepCount((s) => Math.max(s, step + 1));
+  }, []);
+
+  const restoreTelemetry = useCallback((started: number, focus: number, maxStep: number) => {
+    startedAt.current = started;
+    focusCount.current = focus;
+    setStepCount(maxStep);
   }, []);
 
   const buildTelemetry = useCallback(
@@ -29,11 +39,9 @@ export function useFormTelemetry(totalFields: number) {
     [stepCount, totalFields]
   );
 
-  useEffect(() => {
-    startedAt.current = Date.now();
-  }, []);
+  const getFocusCount = useCallback(() => focusCount.current, []);
 
-  return { onFieldFocus, onStepChange, buildTelemetry };
+  return { onFieldFocus, onStepChange, buildTelemetry, restoreTelemetry, getFocusCount };
 }
 
 export type FormColorMode = "light" | "dark";

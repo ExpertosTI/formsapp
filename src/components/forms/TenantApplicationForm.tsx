@@ -1,11 +1,16 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, Send } from "lucide-react";
 import type { FormSection } from "@/lib/form-config";
 import { useFormTelemetry, type FormColorMode } from "@/hooks/useFormTelemetry";
-import { RdLocationFields } from "./RdLocationFields";
+import { clearFormDraft, type FormDraft, loadFormDraft, useFormDraft } from "@/hooks/useFormDraft";
+import { iconForField } from "@/lib/field-icons";
+import { isValidCedula, isValidPhoneRD, maskForField } from "@/lib/rd-formats";
+import { RdLocationFields, type RdLocationValues } from "./RdLocationFields";
+import { FormMaskedInput } from "./FormMaskedInput";
+import { FormMultiSelectCards, FormSelectCards } from "./FormSelectCards";
 
 interface TenantTheme {
   primary: string;
@@ -21,20 +26,84 @@ interface Props {
   colorMode: FormColorMode;
 }
 
+const EMPTY_LOCATION: RdLocationValues = {
+  provincia: "",
+  ciudad: "",
+  sector: "",
+  direccion: "",
+};
+
 export function TenantApplicationForm({ slug, tenantName, sections, theme, colorMode }: Props) {
   const router = useRouter();
+  const [draftReady, setDraftReady] = useState(false);
+
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const [multiValues, setMultiValues] = useState<Record<string, string[]>>({});
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [fileValues, setFileValues] = useState<Record<string, File>>({});
+  const [fileMeta, setFileMeta] = useState<Record<string, { name: string; size: number }>>({});
+  const [locationValues, setLocationValues] = useState<RdLocationValues>(EMPTY_LOCATION);
+  const [telemetryMeta, setTelemetryMeta] = useState({
+    startedAt: Date.now(),
+    focusCount: 0,
+    maxStep: 1,
+  });
   const formRef = useRef<HTMLFormElement>(null);
 
   const totalFields = sections.reduce((n, s) => n + s.fields.length, 0);
-  const { onFieldFocus, onStepChange, buildTelemetry } = useFormTelemetry(totalFields);
+  const { onFieldFocus, onStepChange, buildTelemetry, restoreTelemetry } = useFormTelemetry(
+    totalFields,
+    telemetryMeta.startedAt,
+  );
+
+  const hydrateDraft = useCallback(
+    (loaded: FormDraft) => {
+      setFormValues(loaded.formValues);
+      setMultiValues(loaded.multiValues);
+      setLocationValues(loaded.locationValues);
+      setStep(loaded.step);
+      setFileMeta(loaded.fileMeta);
+      setTelemetryMeta({
+        startedAt: loaded.startedAt,
+        focusCount: loaded.focusCount,
+        maxStep: loaded.maxStep,
+      });
+      restoreTelemetry(loaded.startedAt, loaded.focusCount, loaded.maxStep);
+      setDraftReady(true);
+    },
+    [restoreTelemetry],
+  );
+
+  useEffect(() => {
+    if (!loadFormDraft(slug)) setDraftReady(true);
+  }, [slug]);
+
+  const draftPayload = useMemo(
+    () => ({
+      formValues,
+      multiValues,
+      locationValues,
+      step,
+      startedAt: telemetryMeta.startedAt,
+      focusCount: telemetryMeta.focusCount,
+      maxStep: telemetryMeta.maxStep,
+      fileMeta,
+    }),
+    [formValues, multiValues, locationValues, step, telemetryMeta, fileMeta],
+  );
+
+  useFormDraft(slug, draftPayload, hydrateDraft, draftReady);
 
   const current = sections[step];
   const isLast = step === sections.length - 1;
+
+  const handleFocus = useCallback(() => {
+    onFieldFocus();
+    setTelemetryMeta((m) => ({ ...m, focusCount: m.focusCount + 1 }));
+  }, [onFieldFocus]);
 
   const toggleMulti = useCallback((key: string, option: string) => {
     setMultiValues((prev) => {
@@ -44,30 +113,146 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
     });
   }, []);
 
-  function countFilled(fd: FormData): number {
+  const handleLocationChange = useCallback((values: RdLocationValues) => {
+    setLocationValues(values);
+  }, []);
+
+  const setFieldValue = useCallback((key: string, value: string) => {
+    setFormValues((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  function captureCurrentStepValues(form: HTMLFormElement) {
+    const fd = new FormData(form);
+    const values = { ...formValues };
+    const files = { ...fileValues };
+
+    for (const field of current.fields) {
+      if (field.type === "location") continue;
+      if (field.type === "file") {
+        const f = fd.get(field.key);
+        if (f instanceof File && f.size > 0) files[field.key] = f;
+      } else if (field.type !== "multiselect") {
+        values[field.key] = String(fd.get(field.key) ?? "");
+      }
+    }
+
+    return { values, files };
+  }
+
+  function buildFullFormData(
+    values: Record<string, string> = formValues,
+    files: Record<string, File> = fileValues,
+  ): FormData {
+    const fd = new FormData();
+    fd.set("tenant_slug", slug);
+
+    for (const section of sections) {
+      for (const field of section.fields) {
+        if (field.type === "location") {
+          for (const [key, val] of Object.entries(locationValues)) {
+            if (val) fd.set(key, val);
+          }
+          continue;
+        }
+        if (field.type === "file") {
+          const f = files[field.key];
+          if (f) fd.append(field.key, f);
+          continue;
+        }
+        if (field.type === "multiselect") {
+          const vals = multiValues[field.key] ?? [];
+          if (vals.length) fd.set(field.key, vals.join(", "));
+          continue;
+        }
+        const val = values[field.key];
+        if (val) fd.set(field.key, val);
+      }
+    }
+
+    return fd;
+  }
+
+  function countFilled(
+    values: Record<string, string> = formValues,
+    files: Record<string, File> = fileValues,
+  ): number {
     let n = 0;
     for (const section of sections) {
       for (const field of section.fields) {
-        if (field.type === "file") {
-          const f = fd.get(field.key);
-          if (f instanceof File && f.size > 0) n++;
+        if (field.type === "location") {
+          if (Object.values(locationValues).every((v) => v.trim())) n++;
+        } else if (field.type === "file") {
+          if (files[field.key]) n++;
         } else if (field.type === "multiselect") {
           if ((multiValues[field.key] ?? []).length > 0) n++;
-        } else {
-          const v = String(fd.get(field.key) ?? "").trim();
-          if (v) n++;
+        } else if (values[field.key]?.trim()) {
+          n++;
         }
       }
     }
     return n;
   }
 
+  function goBack() {
+    setStep((s) => Math.max(0, s - 1));
+  }
+
+  function validateCurrentStep(
+    values: Record<string, string>,
+    files: Record<string, File>,
+  ): string | null {
+    for (const field of current.fields) {
+      if (field.type === "location") {
+        if (field.required && !Object.values(locationValues).every((v) => v.trim())) {
+          return "Completa tu ubicación";
+        }
+        continue;
+      }
+      if (field.type === "multiselect") {
+        if (field.required && !(multiValues[field.key] ?? []).length) {
+          return `Selecciona al menos una opción: ${field.label}`;
+        }
+        continue;
+      }
+      if (field.type === "file") {
+        if (field.required && !files[field.key] && !fileMeta[field.key]) {
+          return `Falta archivo: ${field.label}`;
+        }
+        continue;
+      }
+      const val = values[field.key]?.trim() ?? "";
+      if (field.required && !val) {
+        return `Campo requerido: ${field.label}`;
+      }
+      if (field.key === "cedula" && val && !isValidCedula(val)) {
+        return "Cédula inválida — formato: 000-0000000-0";
+      }
+      if ((field.key === "celular" || field.key === "tel_casa") && val && !isValidPhoneRD(val)) {
+        return `${field.label}: usa formato (809) 000-0000`;
+      }
+    }
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
+    const captured = captureCurrentStepValues(form);
+    setFormValues(captured.values);
+    setFileValues(captured.files);
+
+    const validationError = validateCurrentStep(captured.values, captured.files);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError("");
+
     if (!isLast) {
       const next = step + 1;
       setStep(next);
       onStepChange(next);
+      setTelemetryMeta((m) => ({ ...m, maxStep: Math.max(m.maxStep, next + 1) }));
       return;
     }
 
@@ -84,19 +269,13 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
       }
     }
 
-    const form = e.currentTarget;
-    const fd = new FormData(form);
-    fd.set("tenant_slug", slug);
-
-    for (const [key, vals] of Object.entries(multiValues)) {
-      if (vals.length) fd.set(key, vals.join(", "));
-    }
-
-    const telemetry = buildTelemetry(countFilled(fd));
+    const fd = buildFullFormData(captured.values, captured.files);
+    const telemetry = buildTelemetry(countFilled(captured.values, captured.files));
     fd.set("_telemetry", JSON.stringify(telemetry));
 
     const res = await fetch("/api/submissions", { method: "POST", body: fd });
     if (res.ok) {
+      clearFormDraft(slug);
       setDone(true);
       router.refresh();
     } else {
@@ -117,6 +296,21 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
       </div>
     );
   }
+
+  const FieldIcon = (key: string) => {
+    const Icon = iconForField(key);
+    return (
+      <span className="form-label-icon">
+        <Icon className="w-3.5 h-3.5" />
+      </span>
+    );
+  };
+
+  const selectColumns = (fieldKey: string, count: number): 2 | 3 => {
+    if (fieldKey === "oficio_profesion" || count > 4) return 2;
+    if (count <= 3) return 2;
+    return 3;
+  };
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="form-card p-6 sm:p-8 animate-tl-fade-in">
@@ -142,85 +336,106 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
       </p>
       <h2 className="mb-5 text-lg font-semibold form-title">{current.title}</h2>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {current.fields.map((field) =>
           field.type === "location" ? (
-            <RdLocationFields key={field.key} onFocus={onFieldFocus} />
+            <RdLocationFields
+              key={field.key}
+              defaults={locationValues}
+              onFocus={handleFocus}
+              onChange={handleLocationChange}
+            />
           ) : (
-          <div key={field.key}>
-            <label className="form-label">
-              {field.label}
-              {field.required ? " *" : ""}
-            </label>
-
-            {field.type === "textarea" ? (
-              <textarea
-                name={field.key}
-                required={field.required}
-                rows={3}
-                placeholder={field.placeholder}
-                onFocus={onFieldFocus}
-                className="form-input resize-y min-h-[88px]"
-              />
-            ) : field.type === "select" ? (
-              <select
-                name={field.key}
-                required={field.required}
-                onFocus={onFieldFocus}
-                className="form-input"
-              >
-                <option value="">Seleccionar…</option>
-                {field.options?.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </select>
-            ) : field.type === "multiselect" ? (
-              <div className="flex flex-wrap gap-2" onFocus={onFieldFocus}>
-                {field.options?.map((o) => {
-                  const selected = (multiValues[field.key] ?? []).includes(o);
-                  return (
-                    <button
-                      key={o}
-                      type="button"
-                      onClick={() => toggleMulti(field.key, o)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
-                        selected ? "text-white border-transparent" : "form-chip"
-                      }`}
-                      style={
-                        selected
-                          ? { background: `linear-gradient(135deg, ${theme.accent}, ${theme.primary})` }
-                          : undefined
-                      }
-                    >
-                      {o}
-                    </button>
-                  );
-                })}
-                <input type="hidden" name={field.key} value={(multiValues[field.key] ?? []).join(", ")} />
+            <div key={field.key}>
+              <div className="form-label-row">
+                {FieldIcon(field.key)}
+                <label className="form-label mb-0">
+                  {field.label}
+                  {field.required ? " *" : ""}
+                </label>
               </div>
-            ) : field.type === "file" ? (
-              <input
-                name={field.key}
-                type="file"
-                required={field.required}
-                accept={field.accept}
-                onFocus={onFieldFocus}
-                className="form-input file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-black/10 file:text-inherit"
-              />
-            ) : (
-              <input
-                name={field.key}
-                type={field.type === "url" ? "url" : field.type}
-                required={field.required}
-                placeholder={field.placeholder}
-                onFocus={onFieldFocus}
-                className="form-input"
-              />
-            )}
-          </div>
-          )
+
+              {field.type === "textarea" ? (
+                <textarea
+                  name={field.key}
+                  required={field.required}
+                  rows={3}
+                  placeholder={field.placeholder}
+                  value={formValues[field.key] ?? ""}
+                  onChange={(e) => setFieldValue(field.key, e.target.value)}
+                  onFocus={handleFocus}
+                  className="form-input resize-y min-h-[88px]"
+                />
+              ) : field.type === "select" ? (
+                <FormSelectCards
+                  fieldKey={field.key}
+                  options={field.options ?? []}
+                  value={formValues[field.key] ?? ""}
+                  onChange={(v) => setFieldValue(field.key, v)}
+                  onFocus={handleFocus}
+                  theme={theme}
+                  columns={selectColumns(field.key, field.options?.length ?? 0)}
+                />
+              ) : field.type === "multiselect" ? (
+                <FormMultiSelectCards
+                  fieldKey={field.key}
+                  options={field.options ?? []}
+                  values={multiValues[field.key] ?? []}
+                  onToggle={(o) => toggleMulti(field.key, o)}
+                  onFocus={handleFocus}
+                  theme={theme}
+                  columns={field.key === "rubros_laborales" ? 2 : 3}
+                />
+              ) : field.type === "file" ? (
+                <>
+                  <input
+                    name={field.key}
+                    type="file"
+                    required={field.required && !fileValues[field.key]}
+                    accept={field.accept}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        setFileValues((prev) => ({ ...prev, [field.key]: f }));
+                        setFileMeta((prev) => ({
+                          ...prev,
+                          [field.key]: { name: f.name, size: f.size },
+                        }));
+                      }
+                    }}
+                    onFocus={handleFocus}
+                    className="form-input file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-black/10 file:text-inherit"
+                  />
+                  {(fileValues[field.key] || fileMeta[field.key]) && (
+                    <p className="mt-1.5 text-xs form-muted">
+                      Archivo: {fileValues[field.key]?.name ?? fileMeta[field.key]?.name}
+                      {!fileValues[field.key] && fileMeta[field.key] && " — vuelve a seleccionarlo"}
+                    </p>
+                  )}
+                </>
+              ) : maskForField(field.key) ? (
+                <FormMaskedInput
+                  fieldKey={field.key}
+                  value={formValues[field.key] ?? ""}
+                  onChange={(v) => setFieldValue(field.key, v)}
+                  onFocus={handleFocus}
+                  required={field.required}
+                  type={field.type}
+                />
+              ) : (
+                <input
+                  name={field.key}
+                  type={field.type === "url" ? "url" : field.type}
+                  required={field.required}
+                  placeholder={field.placeholder}
+                  value={formValues[field.key] ?? ""}
+                  onChange={(e) => setFieldValue(field.key, e.target.value)}
+                  onFocus={handleFocus}
+                  className="form-input"
+                />
+              )}
+            </div>
+          ),
         )}
       </div>
 
@@ -228,7 +443,7 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
 
       <div className="flex gap-3 mt-8">
         {step > 0 && (
-          <button type="button" onClick={() => setStep((s) => s - 1)} className="form-btn-ghost flex-1">
+          <button type="button" onClick={goBack} className="form-btn-ghost flex-1">
             <ChevronLeft className="w-4 h-4" />
             Atrás
           </button>
@@ -236,24 +451,24 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 py-3 text-sm font-semibold rounded-xl text-white transition-all hover:opacity-95 active:scale-[0.98] disabled:opacity-60"
+          className="form-btn-primary flex-1"
           style={{
             background: `linear-gradient(135deg, ${theme.accent}, ${theme.primary})`,
-            boxShadow: `0 8px 24px -6px ${theme.primary}66`,
+            boxShadow: `0 8px 28px -6px ${theme.primary}66`,
           }}
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 mx-auto animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : isLast ? (
-            <span className="inline-flex items-center justify-center gap-2">
+            <>
               <Send className="w-4 h-4" />
               Enviar solicitud
-            </span>
+            </>
           ) : (
-            <span className="inline-flex items-center justify-center gap-2">
+            <>
               Siguiente
               <ChevronRight className="w-4 h-4" />
-            </span>
+            </>
           )}
         </button>
       </div>

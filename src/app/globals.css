@@ -238,6 +238,33 @@ body::after {
     color: var(--form-muted);
   }
   .form-btn-ghost:hover { opacity: 0.85; }
+  .form-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-xl text-white transition-all;
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.25);
+  }
+  .form-btn-primary:hover { opacity: 0.95; transform: translateY(-1px); }
+  .form-btn-primary:active { transform: scale(0.98); }
+  .form-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .form-option-card {
+    background: var(--form-chip-bg);
+    border-color: var(--form-chip-border);
+    color: var(--form-muted);
+    @apply border;
+  }
+  .form-option-card:hover:not(.form-option-card--selected) {
+    border-color: rgba(94, 234, 212, 0.35);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--form-title);
+  }
+  .form-label-row {
+    @apply flex items-center gap-2 mb-2;
+  }
+  .form-label-icon {
+    @apply flex items-center justify-center w-7 h-7 rounded-lg;
+    background: var(--form-chip-bg);
+    border: 1px solid var(--form-chip-border);
+    color: var(--form-muted);
+  }
   .form-theme-toggle {
     @apply flex items-center justify-center w-9 h-9 rounded-lg border transition-all;
     background: var(--form-chip-bg);
