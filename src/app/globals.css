@@ -172,6 +172,7 @@ body::after {
     --form-title: #f8fafc;
     --form-muted: #94a3b8;
     --form-footer: #475569;
+    --form-hint: #94a3b8;
     --form-card-bg: rgba(15, 22, 40, 0.88);
     --form-card-border: rgba(255, 255, 255, 0.08);
     --form-input-bg: rgba(255, 255, 255, 0.04);
@@ -185,18 +186,19 @@ body::after {
   }
   .form-root.form-light {
     --form-title: #0f172a;
-    --form-muted: #64748b;
-    --form-footer: #94a3b8;
-    --form-card-bg: rgba(255, 255, 255, 0.95);
-    --form-card-border: rgba(15, 23, 42, 0.08);
-    --form-input-bg: #f8fafc;
-    --form-input-border: rgba(15, 23, 42, 0.12);
+    --form-muted: #475569;
+    --form-footer: #64748b;
+    --form-card-bg: #ffffff;
+    --form-card-border: rgba(15, 23, 42, 0.1);
+    --form-input-bg: #ffffff;
+    --form-input-border: rgba(15, 23, 42, 0.14);
     --form-input-text: #0f172a;
     --form-chip-bg: #f1f5f9;
     --form-chip-border: #e2e8f0;
     --form-dashed: #cbd5e1;
     --form-stat-bg: #f8fafc;
-    --form-header-border: rgba(15, 23, 42, 0.06);
+    --form-header-border: rgba(15, 23, 42, 0.08);
+    --form-hint: #64748b;
   }
   .form-title { color: var(--form-title); }
   .form-muted { color: var(--form-muted); }
@@ -252,9 +254,20 @@ body::after {
     @apply border;
   }
   .form-option-card:hover:not(.form-option-card--selected) {
-    border-color: rgba(94, 234, 212, 0.35);
-    background: rgba(255, 255, 255, 0.06);
+    border-color: color-mix(in srgb, var(--form-accent, #5eead4) 45%, transparent);
+    background: color-mix(in srgb, var(--form-primary, #818cf8) 8%, var(--form-chip-bg));
     color: var(--form-title);
+  }
+  .form-root.form-light .form-option-card:hover:not(.form-option-card--selected) {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+    color: #0f172a;
+  }
+  .form-hint {
+    color: var(--form-hint);
+  }
+  .form-success-card {
+    background: var(--form-card-bg);
   }
   .form-label-row {
     @apply flex items-center gap-2 mb-2;

@@ -7,7 +7,12 @@ import type { FormSection } from "@/lib/form-config";
 import { useFormTelemetry, type FormColorMode } from "@/hooks/useFormTelemetry";
 import { clearFormDraft, type FormDraft, loadFormDraft, useFormDraft } from "@/hooks/useFormDraft";
 import { iconForField } from "@/lib/field-icons";
-import { isValidCedula, isValidPhoneRD, maskForField } from "@/lib/rd-formats";
+import {
+  isValidCedulaFormat,
+  isValidPhoneLandline,
+  isValidPhoneMobile,
+  maskForField,
+} from "@/lib/rd-formats";
 import { RdLocationFields, type RdLocationValues } from "./RdLocationFields";
 import { FormMaskedInput } from "./FormMaskedInput";
 import { FormMultiSelectCards, FormSelectCards } from "./FormSelectCards";
@@ -194,6 +199,7 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
   }
 
   function goBack() {
+    setError("");
     setStep((s) => Math.max(0, s - 1));
   }
 
@@ -224,11 +230,14 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
       if (field.required && !val) {
         return `Campo requerido: ${field.label}`;
       }
-      if (field.key === "cedula" && val && !isValidCedula(val)) {
-        return "Cédula inválida — formato: 000-0000000-0";
+      if (field.key === "cedula" && val && !isValidCedulaFormat(val)) {
+        return "Ingresa los 11 dígitos de tu cédula (ej. 402-1234567-8)";
       }
-      if ((field.key === "celular" || field.key === "tel_casa") && val && !isValidPhoneRD(val)) {
-        return `${field.label}: usa formato (809) 000-0000`;
+      if (field.key === "celular" && val && !isValidPhoneMobile(val)) {
+        return "Celular: 10 dígitos con indicativo 809, 829 o 849";
+      }
+      if (field.key === "tel_casa" && val && !isValidPhoneLandline(val)) {
+        return "Teléfono de casa: 7 dígitos (555-1234) o 10 con indicativo";
       }
     }
     return null;
@@ -287,10 +296,24 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
 
   if (done) {
     return (
-      <div className="p-8 text-center form-card animate-tl-scale-in">
-        <CheckCircle2 className="w-14 h-14 mx-auto mb-4" style={{ color: theme.accent }} />
+      <div
+        className="p-8 text-center form-card form-success-card animate-tl-scale-in"
+        style={{
+          borderColor: `${theme.accent}44`,
+          boxShadow: `0 20px 50px -20px ${theme.primary}33`,
+        }}
+      >
+        <div
+          className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-2xl"
+          style={{
+            background: `linear-gradient(135deg, ${theme.accent}, ${theme.primary})`,
+            boxShadow: `0 8px 24px -6px ${theme.primary}55`,
+          }}
+        >
+          <CheckCircle2 className="w-8 h-8 text-white" />
+        </div>
         <h2 className="text-xl font-bold form-title">¡Solicitud enviada!</h2>
-        <p className="mt-2 text-sm form-muted">
+        <p className="mt-2 text-sm form-muted max-w-xs mx-auto">
           {tenantName} recibirá tu información. Gracias por aplicar.
         </p>
       </div>

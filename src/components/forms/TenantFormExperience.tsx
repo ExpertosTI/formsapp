@@ -147,7 +147,7 @@ function FormShell({
       style={{
         background: isDark
           ? `radial-gradient(ellipse 80% 50% at 50% -20%, ${theme.primary}33, transparent), ${bg}`
-          : `linear-gradient(180deg, ${theme.primary}08 0%, ${bg} 40%)`,
+          : `linear-gradient(180deg, color-mix(in srgb, ${theme.primary} 12%, white) 0%, ${bg} 50%)`,
         ["--form-primary" as string]: theme.primary,
         ["--form-accent" as string]: theme.accent,
       }}
