@@ -1,69 +1,85 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { normalizeWhatsAppPhone, whatsAppClickUrl } from "./phone";
+import { getEvoConfig } from "./evo";
+import { normalizeEvoPhone, whatsAppClickUrl } from "./phone";
 
 export interface WhatsAppSendResult {
   ok: boolean;
   sent: boolean;
   manualUrl?: string;
   error?: string;
-  sid?: string;
+  provider?: "evolution" | "manual";
+  messageId?: string;
 }
 
-export async function sendWhatsAppMessage(to: string, body: string): Promise<WhatsAppSendResult> {
-  const e164 = normalizeWhatsAppPhone(to);
-  if (!e164) {
-    return { ok: false, sent: false, error: "Número de celular inválido para WhatsApp (809/829/849)" };
-  }
-
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_WHATSAPP_FROM;
-
-  if (!sid || !token || !from) {
+async function sendViaEvolution(to: string, body: string): Promise<WhatsAppSendResult> {
+  const cfg = getEvoConfig();
+  if (!cfg) {
     return {
       ok: true,
       sent: false,
-      manualUrl: whatsAppClickUrl(e164, body),
-      error: "API de WhatsApp no configurada — usa el enlace manual",
+      manualUrl: whatsAppClickUrl(to, body),
+      error: "Evolution API no configurada en .env",
+      provider: "manual",
     };
   }
 
+  const number = normalizeEvoPhone(to);
+  if (!number) {
+    return { ok: false, sent: false, error: "Número de celular inválido (809/829/849)" };
+  }
+
+  const url = `${cfg.baseUrl}/message/sendText/${encodeURIComponent(cfg.instance)}`;
+
   try {
-    const auth = Buffer.from(`${sid}:${token}`).toString("base64");
-    const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
-        Authorization: `Basic ${auth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
+        apikey: cfg.apiKey,
       },
-      body: new URLSearchParams({
-        From: from.startsWith("whatsapp:") ? from : `whatsapp:${from}`,
-        To: `whatsapp:${e164}`,
-        Body: body,
-      }),
+      body: JSON.stringify({ number, text: body }),
     });
 
-    const data = (await res.json()) as { sid?: string; message?: string };
+    const data = (await res.json().catch(() => ({}))) as {
+      key?: { id?: string };
+      message?: string;
+      error?: string;
+      response?: { message?: string };
+    };
+
     if (!res.ok) {
+      const errMsg =
+        data.message ?? data.error ?? data.response?.message ?? `Evolution API error ${res.status}`;
       return {
         ok: false,
         sent: false,
-        manualUrl: whatsAppClickUrl(e164, body),
-        error: data.message ?? `Twilio error ${res.status}`,
+        manualUrl: whatsAppClickUrl(number, body),
+        error: errMsg,
+        provider: "manual",
       };
     }
 
-    return { ok: true, sent: true, sid: data.sid };
+    return {
+      ok: true,
+      sent: true,
+      provider: "evolution",
+      messageId: data.key?.id,
+    };
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Error al enviar WhatsApp";
+    const msg = e instanceof Error ? e.message : "Error al conectar con Evolution API";
     return {
       ok: false,
       sent: false,
-      manualUrl: whatsAppClickUrl(e164, body),
+      manualUrl: whatsAppClickUrl(number, body),
       error: msg,
+      provider: "manual",
     };
   }
+}
+
+export async function sendWhatsAppMessage(to: string, body: string): Promise<WhatsAppSendResult> {
+  return sendViaEvolution(to, body);
 }
 
 export async function logNotification(params: {
@@ -96,7 +112,11 @@ export async function notifyCandidateWhatsApp(params: {
     submissionId: params.submissionId,
     type: params.type,
     status: result.sent ? "sent" : result.manualUrl ? "manual" : "failed",
-    payload: { manualUrl: result.manualUrl, sid: result.sid },
+    payload: {
+      provider: result.provider,
+      manualUrl: result.manualUrl,
+      messageId: result.messageId,
+    },
     error: result.error,
   });
   return result;

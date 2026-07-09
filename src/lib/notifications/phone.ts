@@ -9,7 +9,14 @@ export function normalizeWhatsAppPhone(raw: unknown): string | null {
   return `+1${d}`;
 }
 
-export function whatsAppClickUrl(phoneE164: string, message: string): string {
-  const digits = phoneE164.replace(/\D/g, "");
+/** Formato Evolution API: dígitos internacionales sin + (ej. 18095551234) */
+export function normalizeEvoPhone(raw: unknown): string | null {
+  const e164 = normalizeWhatsAppPhone(raw);
+  if (!e164) return null;
+  return e164.replace(/\D/g, "");
+}
+
+export function whatsAppClickUrl(phone: string, message: string): string {
+  const digits = phone.replace(/\D/g, "");
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
