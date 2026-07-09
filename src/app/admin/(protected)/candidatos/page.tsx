@@ -114,7 +114,7 @@ export default async function CandidatosPage({ searchParams }: Props) {
     ));
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <header className="tl-page-header">
         <h1 className="tl-page-title">
           {tenantSession && tenantInfo ? tenantInfo.name : tenantSession ? "Mis candidatos" : "Candidatos"}
@@ -144,12 +144,12 @@ export default async function CandidatosPage({ searchParams }: Props) {
               <h2 className="mb-3 text-xs font-bold tracking-wider uppercase text-slate-500">
                 {g.label} <span className="text-slate-600">({g.items.length})</span>
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2 tl-stagger">{renderList(g.items)}</div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 tl-stagger">{renderList(g.items)}</div>
             </section>
           ))}
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 tl-stagger">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 tl-stagger">
             {renderList(filtered)}
             {filtered.length === 0 && (
               <div className="p-12 text-center glass-card">

@@ -125,7 +125,7 @@ export default async function AdminDashboard() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
       <header className="tl-page-header">
         <h1 className="tl-page-title">Super Admin</h1>
         <p className="tl-page-sub">Vista global · uso interno</p>

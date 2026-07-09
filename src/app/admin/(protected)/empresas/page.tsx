@@ -13,7 +13,7 @@ export default async function EmpresasPage() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
       <header className="tl-page-header">
         <h1 className="tl-page-title">Empresas</h1>
         <p className="tl-page-sub">Registra organizaciones y asigna su formulario privado</p>
