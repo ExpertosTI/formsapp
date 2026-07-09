@@ -39,6 +39,7 @@ import {
 } from "@/components/admin/CandidateProfileSections";
 import { getCvFilename, getPhotoFilename, isPdfFilename } from "@/lib/candidate";
 import { getTenantSession } from "@/lib/tenant-auth";
+import { CandidateWorkflowPanel } from "@/components/admin/CandidateWorkflowPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,10 @@ export default async function CandidatoDetailPage({ params }: Props) {
 
   const submission = await prisma.submission.findUnique({
     where: { id },
-    include: { tenant: true },
+    include: {
+      tenant: true,
+      booking: { include: { slot: true } },
+    },
   });
   if (!submission) notFound();
 
@@ -73,6 +77,27 @@ export default async function CandidatoDetailPage({ params }: Props) {
   const scoring = parseScoring(data) ?? computeCandidateScore(data);
   const scoreColor = getScoreColor(scoring.grade);
   const isSuperAdmin = !tenantSession;
+
+  const interviewSlots = await prisma.interviewSlot.findMany({
+    where: {
+      tenantId: submission.tenantId,
+      startsAt: { gte: new Date() },
+    },
+    orderBy: { startsAt: "asc" },
+    include: { _count: { select: { bookings: true } } },
+    take: 30,
+  });
+
+  const slotsForPanel = interviewSlots.map((s) => ({
+    id: s.id,
+    startsAt: s.startsAt.toISOString(),
+    endsAt: s.endsAt.toISOString(),
+    location: s.location,
+    quota: s.quota,
+    booked: s._count.bookings,
+    remaining: Math.max(0, s.quota - s._count.bookings),
+    notes: s.notes,
+  }));
 
   return (
     <div className="max-w-lg mx-auto pb-8 sm:max-w-2xl lg:max-w-3xl">
@@ -178,6 +203,25 @@ export default async function CandidatoDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      <CandidateWorkflowPanel
+        submissionId={submission.id}
+        currentStatus={submission.status}
+        tenantSlug={slug}
+        candidateName={name}
+        slots={slotsForPanel}
+      />
+
+      {submission.booking && (
+        <section className="p-4 mb-4 tl-card border-purple-500/20">
+          <p className="text-xs font-bold uppercase tracking-wider text-purple-300 mb-2">
+            Entrevista agendada
+          </p>
+          <p className="text-sm text-white">
+            {submission.booking.slot.startsAt.toLocaleString("es-DO")} — {submission.booking.slot.location}
+          </p>
+        </section>
+      )}
 
       {/* Puestos sugeridos */}
       {positions.length > 0 && (

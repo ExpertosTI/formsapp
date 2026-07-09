@@ -12,6 +12,7 @@ import {
   BarChart3,
   Palette,
   PanelLeftClose,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TalentoLinkLogo } from "@/components/brand/TalentoLinkLogo";
@@ -19,12 +20,14 @@ import { TalentoLinkLogo } from "@/components/brand/TalentoLinkLogo";
 const navSuper = [
   { href: "/admin", label: "Inicio", icon: LayoutDashboard, exact: true as const },
   { href: "/admin/candidatos", label: "Candidatos", icon: Users, exact: false as const },
+  { href: "/admin/entrevistas", label: "Entrevistas", icon: CalendarDays, exact: false as const },
   { href: "/admin/estadisticas", label: "Estadísticas", icon: BarChart3, exact: false as const },
   { href: "/admin/empresas", label: "Empresas", icon: Building2, exact: false as const },
 ];
 
 const navTenant = (slug: string) => [
   { href: `/admin/candidatos?empresa=${slug}`, label: "Mis candidatos", icon: Users, exact: false as const },
+  { href: "/admin/entrevistas", label: "Entrevistas", icon: CalendarDays, exact: false as const },
   { href: `/admin/estadisticas?empresa=${slug}`, label: "Estadísticas", icon: BarChart3, exact: false as const },
   { href: "/admin/mi-empresa", label: "Mi empresa", icon: Palette, exact: true as const },
   { href: `/forms/${slug}`, label: "Mi formulario", icon: ExternalLink, exact: true as const, external: true as const },

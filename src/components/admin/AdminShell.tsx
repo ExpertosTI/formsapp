@@ -13,6 +13,7 @@ const TITLES: Record<string, string> = {
   "/admin/empresas": "Empresas",
   "/admin/mi-empresa": "Mi empresa",
   "/admin/estadisticas": "Estadísticas",
+  "/admin/entrevistas": "Entrevistas",
 };
 
 function pageTitle(pathname: string): string {

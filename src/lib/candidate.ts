@@ -7,6 +7,7 @@ export const STATUS_LABELS: Record<string, string> = {
   nuevo: "Nuevo",
   favorito: "Pendiente / Favorito",
   revisado: "Revisado",
+  aceptado: "Aceptado",
   entrevista: "Entrevista",
   contratado: "Contratado",
   archivado: "Archivado",
@@ -16,10 +17,14 @@ export const STATUS_COLORS: Record<string, string> = {
   nuevo: "bg-blue-500/20 text-blue-300 border-blue-500/30",
   favorito: "bg-pink-500/20 text-pink-300 border-pink-500/30",
   revisado: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+  aceptado: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
   entrevista: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-  contratado: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+  contratado: "bg-teal-500/20 text-teal-200 border-teal-500/30",
   archivado: "bg-slate-500/20 text-slate-400 border-slate-500/30",
 };
+
+/** Estados en los que se puede eliminar el candidato de forma segura */
+export const DELETABLE_STATUSES = ["contratado", "archivado", "entrevista", "aceptado"] as const;
 
 export function asSubmissionData(value: unknown): SubmissionData {
   if (value && typeof value === "object" && !Array.isArray(value)) {

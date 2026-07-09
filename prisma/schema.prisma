@@ -28,19 +28,66 @@ model Tenant {
   createdAt         DateTime     @default(now()) @map("created_at")
   updatedAt         DateTime     @updatedAt @map("updated_at")
   submissions       Submission[]
+  interviewSlots    InterviewSlot[]
 
   @@map("tenants")
 }
 
+model InterviewSlot {
+  id        String             @id @default(cuid())
+  tenantId  String             @map("tenant_id")
+  tenant    Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  startsAt  DateTime           @map("starts_at")
+  endsAt    DateTime           @map("ends_at")
+  location  String
+  quota     Int                @default(5)
+  notes     String?
+  createdAt DateTime           @default(now()) @map("created_at")
+  bookings  InterviewBooking[]
+
+  @@index([tenantId, startsAt])
+  @@map("interview_slots")
+}
+
+model InterviewBooking {
+  id           String        @id @default(cuid())
+  slotId       String        @map("slot_id")
+  slot         InterviewSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  submissionId String        @unique @map("submission_id")
+  submission   Submission    @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  notifiedAt   DateTime?     @map("notified_at")
+  bookedAt     DateTime      @default(now()) @map("booked_at")
+
+  @@index([slotId])
+  @@map("interview_bookings")
+}
+
+model NotificationLog {
+  id           String     @id @default(cuid())
+  submissionId String     @map("submission_id")
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  channel      String
+  type         String
+  status       String
+  payload      Json?
+  error        String?
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@index([submissionId])
+  @@map("notification_logs")
+}
+
 model Submission {
-  id          String   @id @default(cuid())
-  tenantId    String   @map("tenant_id")
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  data        Json
-  files       Json     // Store as JSON array of filenames
-  status      String   @default("nuevo")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id            String             @id @default(cuid())
+  tenantId      String             @map("tenant_id")
+  tenant        Tenant             @relation(fields: [tenantId], references: [id])
+  data          Json
+  files         Json
+  status        String             @default("nuevo")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  booking       InterviewBooking?
+  notifications NotificationLog[]
 
   @@index([tenantId])
   @@map("submissions")
