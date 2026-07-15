@@ -10,7 +10,8 @@ export type FormFieldType =
   | "file"
   | "multiselect"
   | "url"
-  | "location";
+  | "location"
+  | "work_experience";
 
 export interface FormField {
   key: string;
@@ -129,7 +130,12 @@ function collectAllFields(settings: TenantSettings | null | undefined): FormFiel
 
   if (on("experiencia_laboral", true)) {
     fields.push(
-      { key: "experiencia", label: "Experiencia laboral", type: "textarea", required: true, placeholder: "Empresas, cargos y años…" },
+      {
+        key: "experiencia",
+        label: "Experiencia laboral",
+        type: "work_experience",
+        required: true,
+      },
       { key: "trabajando_actualmente", label: "¿Trabaja actualmente?", type: "select", options: SI_NO, required: true },
       { key: "razon_dejar_empleo", label: "Motivo de salida del empleo anterior", type: "textarea" },
       { key: "tiempo_disponible", label: "Disponibilidad para empezar", type: "select", options: DISPONIBILIDAD, required: true }
@@ -179,14 +185,14 @@ function chunkIntoWizardSteps(fields: FormField[], maxPerStep = 2): FormSection[
   let buffer: FormField[] = [];
 
   for (const field of fields) {
-    if (field.type === "location") {
+    if (field.type === "location" || field.type === "work_experience") {
       if (buffer.length) {
         sections.push(makeStep(buffer, sections.length));
         buffer = [];
       }
       sections.push({
-        id: `step_location`,
-        title: STEP_TITLES.location,
+        id: `step_${field.key}`,
+        title: STEP_TITLES[field.key] ?? field.label,
         fields: [field],
       });
       continue;

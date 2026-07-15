@@ -1,5 +1,6 @@
 import type { SubmissionData } from "./candidate";
 import { getCandidateName } from "./candidate";
+import { formatWorkExperienceDisplay } from "./work-experience";
 
 export interface AiInsight {
   summary: string;
@@ -10,7 +11,7 @@ export interface AiInsight {
 
 function heuristicInsight(data: SubmissionData): AiInsight {
   const name = getCandidateName(data);
-  const exp = String(data.experiencia ?? "").trim();
+  const exp = formatWorkExperienceDisplay(String(data.experiencia ?? "")) || String(data.experiencia ?? "").trim();
   const oficio = String(data.oficio_profesion ?? "").trim();
   const disponible = String(data.tiempo_disponible ?? "").trim();
   const estudia = String(data.estudia_actualmente ?? "").toLowerCase();
@@ -18,7 +19,7 @@ function heuristicInsight(data: SubmissionData): AiInsight {
   const highlights: string[] = [];
   if (oficio) highlights.push(`Perfil: ${oficio}`);
   if (disponible) highlights.push(`Disponibilidad: ${disponible}`);
-  if (exp.length > 20) {
+  if (exp.length > 10) {
     const snippet = exp.length > 120 ? `${exp.slice(0, 120)}…` : exp;
     highlights.push(`Experiencia: ${snippet}`);
   }
@@ -106,7 +107,7 @@ export function dashboardHeuristicInsights(stats: {
 export function suggestPositions(data: SubmissionData): string[] {
   const text = [
     data.oficio_profesion,
-    data.experiencia,
+    formatWorkExperienceDisplay(String(data.experiencia ?? "")) || data.experiencia,
     data.rubros_laborales,
     data.sectores_experiencia,
     data.especialidad,

@@ -51,12 +51,10 @@ export default async function CandidatoDetailPage({ params }: Props) {
   const { id } = await params;
   const tenantSession = await getTenantSession();
 
+  // Sin relaciones de entrevista primero: si las tablas no existen aún, no tumbar el perfil/CV.
   const submission = await prisma.submission.findUnique({
     where: { id },
-    include: {
-      tenant: true,
-      booking: { include: { slot: true } },
-    },
+    include: { tenant: true },
   });
   if (!submission) notFound();
 
@@ -78,26 +76,50 @@ export default async function CandidatoDetailPage({ params }: Props) {
   const scoreColor = getScoreColor(scoring.grade);
   const isSuperAdmin = !tenantSession;
 
-  const interviewSlots = await prisma.interviewSlot.findMany({
-    where: {
-      tenantId: submission.tenantId,
-      startsAt: { gte: new Date() },
-    },
-    orderBy: { startsAt: "asc" },
-    include: { _count: { select: { bookings: true } } },
-    take: 30,
-  });
+  let booking: {
+    slot: { startsAt: Date; location: string };
+  } | null = null;
+  let slotsForPanel: {
+    id: string;
+    startsAt: string;
+    endsAt: string;
+    location: string;
+    quota: number;
+    booked: number;
+    remaining: number;
+    notes?: string | null;
+  }[] = [];
 
-  const slotsForPanel = interviewSlots.map((s) => ({
-    id: s.id,
-    startsAt: s.startsAt.toISOString(),
-    endsAt: s.endsAt.toISOString(),
-    location: s.location,
-    quota: s.quota,
-    booked: s._count.bookings,
-    remaining: Math.max(0, s.quota - s._count.bookings),
-    notes: s.notes,
-  }));
+  try {
+    const [bookingRow, interviewSlots] = await Promise.all([
+      prisma.interviewBooking.findUnique({
+        where: { submissionId: id },
+        include: { slot: true },
+      }),
+      prisma.interviewSlot.findMany({
+        where: {
+          tenantId: submission.tenantId,
+          startsAt: { gte: new Date() },
+        },
+        orderBy: { startsAt: "asc" },
+        include: { _count: { select: { bookings: true } } },
+        take: 30,
+      }),
+    ]);
+    booking = bookingRow;
+    slotsForPanel = interviewSlots.map((s) => ({
+      id: s.id,
+      startsAt: s.startsAt.toISOString(),
+      endsAt: s.endsAt.toISOString(),
+      location: s.location,
+      quota: s.quota,
+      booked: s._count.bookings,
+      remaining: Math.max(0, s.quota - s._count.bookings),
+      notes: s.notes,
+    }));
+  } catch (e) {
+    console.error("interview tables unavailable; perfil se muestra sin agenda", e);
+  }
 
   return (
     <div className="max-w-lg mx-auto pb-8 sm:max-w-2xl lg:max-w-3xl">
@@ -212,13 +234,13 @@ export default async function CandidatoDetailPage({ params }: Props) {
         slots={slotsForPanel}
       />
 
-      {submission.booking && (
+      {booking && (
         <section className="p-4 mb-4 tl-card border-purple-500/20">
           <p className="text-xs font-bold uppercase tracking-wider text-purple-300 mb-2">
             Entrevista agendada
           </p>
           <p className="text-sm text-white">
-            {submission.booking.slot.startsAt.toLocaleString("es-DO")} — {submission.booking.slot.location}
+            {booking.slot.startsAt.toLocaleString("es-DO")} — {booking.slot.location}
           </p>
         </section>
       )}

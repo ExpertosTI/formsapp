@@ -1,5 +1,6 @@
 import type { SubmissionData } from "./candidate";
 import { suggestPositions } from "./ai";
+import { formatWorkExperienceDisplay, parseWorkExperience } from "./work-experience";
 
 export interface FormTelemetry {
   startedAt: number;
@@ -57,7 +58,10 @@ function writingQualityScore(data: SubmissionData): { score: number; flags: stri
     const raw = String(data[key] ?? "").trim();
     if (!raw) continue;
 
-    if (hasExcessiveUppercase(raw)) {
+    const textForQuality =
+      key === "experiencia" ? formatWorkExperienceDisplay(raw) || raw : raw;
+
+    if (hasExcessiveUppercase(textForQuality)) {
       points -= 12;
       if (key === "nombre" || key === "apellido") {
         flags.push("Nombre/apellido con mayúsculas excesivas");
@@ -66,19 +70,22 @@ function writingQualityScore(data: SubmissionData): { score: number; flags: stri
       }
     }
 
-    if (/(.)\1{3,}/.test(raw)) {
+    if (/(.)\1{3,}/.test(textForQuality)) {
       points -= 8;
       flags.push("Caracteres repetidos detectados");
     }
 
-    if (key === "experiencia" && raw.length > 0 && raw.length < 25) {
-      points -= 15;
-      flags.push("Experiencia laboral muy breve");
-    }
-
-    if (key === "experiencia" && !/[.!?]/.test(raw) && raw.length > 80) {
-      points -= 5;
-      flags.push("Experiencia sin puntuación clara");
+    if (key === "experiencia") {
+      const entries = parseWorkExperience(raw);
+      const structured = entries.some((e) => e.empresa.trim() && e.puesto.trim());
+      if (!structured && textForQuality.length > 0 && textForQuality.length < 25) {
+        points -= 15;
+        flags.push("Experiencia laboral muy breve");
+      }
+      if (!structured && !/[.!?]/.test(textForQuality) && textForQuality.length > 80) {
+        points -= 5;
+        flags.push("Experiencia sin puntuación clara");
+      }
     }
   }
 

@@ -1,4 +1,5 @@
 import { formatLocation } from "./rd-locations";
+import { formatWorkExperienceDisplay } from "./work-experience";
 
 export type SubmissionData = Record<string, string | number | boolean | null | undefined>;
 export type SubmissionFiles = Record<string, string>;
@@ -268,7 +269,10 @@ export function groupFields(data: SubmissionData) {
         .map((key) => ({
           key,
           label: FIELD_LABELS[key] ?? key.replace(/_/g, " "),
-          value: String(data[key]),
+          value:
+            key === "experiencia"
+              ? formatWorkExperienceDisplay(String(data[key])) || String(data[key])
+              : String(data[key]),
         })),
     }))
     .filter((group) => group.fields.length > 0);

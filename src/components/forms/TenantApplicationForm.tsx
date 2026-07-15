@@ -16,6 +16,8 @@ import {
 import { RdLocationFields, type RdLocationValues } from "./RdLocationFields";
 import { FormMaskedInput } from "./FormMaskedInput";
 import { FormMultiSelectCards, FormSelectCards } from "./FormSelectCards";
+import { WorkExperienceFields } from "./WorkExperienceFields";
+import { isWorkExperienceComplete, parseWorkExperience } from "@/lib/work-experience";
 
 interface TenantTheme {
   primary: string;
@@ -132,7 +134,7 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
     const files = { ...fileValues };
 
     for (const field of current.fields) {
-      if (field.type === "location") continue;
+      if (field.type === "location" || field.type === "work_experience") continue;
       if (field.type === "file") {
         const f = fd.get(field.key);
         if (f instanceof File && f.size > 0) files[field.key] = f;
@@ -169,6 +171,11 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
           if (vals.length) fd.set(field.key, vals.join(", "));
           continue;
         }
+        if (field.type === "work_experience") {
+          const val = values[field.key];
+          if (val) fd.set(field.key, val);
+          continue;
+        }
         const val = values[field.key];
         if (val) fd.set(field.key, val);
       }
@@ -190,6 +197,8 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
           if (files[field.key]) n++;
         } else if (field.type === "multiselect") {
           if ((multiValues[field.key] ?? []).length > 0) n++;
+        } else if (field.type === "work_experience") {
+          if (isWorkExperienceComplete(parseWorkExperience(values[field.key]))) n++;
         } else if (values[field.key]?.trim()) {
           n++;
         }
@@ -217,6 +226,12 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
       if (field.type === "multiselect") {
         if (field.required && !(multiValues[field.key] ?? []).length) {
           return `Selecciona al menos una opción: ${field.label}`;
+        }
+        continue;
+      }
+      if (field.type === "work_experience") {
+        if (field.required && !isWorkExperienceComplete(parseWorkExperience(values[field.key]))) {
+          return "Completa empresa, puesto y tiempo de al menos un empleo";
         }
         continue;
       }
@@ -369,6 +384,25 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
               onFocus={handleFocus}
               onChange={handleLocationChange}
             />
+          ) : field.type === "work_experience" ? (
+            <div key={field.key}>
+              <div className="form-label-row">
+                {FieldIcon(field.key)}
+                <label className="form-label mb-0">
+                  {field.label}
+                  {field.required ? " *" : ""}
+                </label>
+              </div>
+              <p className="mb-3 text-xs form-muted">
+                Indica la empresa a la izquierda; a la derecha el puesto y cuánto tiempo laboraste.
+              </p>
+              <WorkExperienceFields
+                value={formValues[field.key] ?? ""}
+                onChange={(v) => setFieldValue(field.key, v)}
+                onFocus={handleFocus}
+                theme={theme}
+              />
+            </div>
           ) : (
             <div key={field.key}>
               <div className="form-label-row">

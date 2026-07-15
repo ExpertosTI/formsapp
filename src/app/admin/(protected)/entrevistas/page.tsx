@@ -21,13 +21,27 @@ export default async function EntrevistasPage({ searchParams }: Props) {
     ? await prisma.tenant.findUnique({ where: { slug }, select: { id: true, name: true, slug: true } })
     : null;
 
-  const slots = tenant
-    ? await prisma.interviewSlot.findMany({
+  type SlotRow = {
+    id: string;
+    startsAt: Date;
+    endsAt: Date;
+    location: string;
+    quota: number;
+    notes: string | null;
+    _count: { bookings: number };
+  };
+  let slots: SlotRow[] = [];
+  if (tenant) {
+    try {
+      slots = await prisma.interviewSlot.findMany({
         where: { tenantId: tenant.id, startsAt: { gte: new Date(Date.now() - 86400000) } },
         orderBy: { startsAt: "asc" },
         include: { _count: { select: { bookings: true } } },
-      })
-    : [];
+      });
+    } catch (e) {
+      console.error("interview_slots table missing — run prisma db push", e);
+    }
+  }
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-8">
