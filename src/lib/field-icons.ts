@@ -44,6 +44,7 @@ export const GROUP_ICONS: Record<string, LucideIcon> = {
 };
 
 export const FIELD_ICONS: Record<string, LucideIcon> = {
+  area_aplicar: Briefcase,
   nombre: User,
   apellido: User,
   cedula: FileText,
@@ -110,6 +111,14 @@ export function iconForRubro(rubro: string): LucideIcon {
   return RUBRO_ICONS[rubro] ?? Briefcase;
 }
 
+const AREA_ICONS: Record<string, LucideIcon> = {
+  Cobranza: DollarSign,
+  Vendedor: TrendingUp,
+  "Gerente de ventas": Briefcase,
+  Reclutador: Users,
+  "Cualquiera de las anteriores": Sparkles,
+};
+
 const OPTION_ICONS: Record<string, LucideIcon> = {
   Sí: Check,
   No: X,
@@ -159,6 +168,7 @@ const PROFESION_ICONS: Record<string, LucideIcon> = {
 };
 
 export function iconForOption(label: string, fieldKey?: string): LucideIcon {
+  if (fieldKey === "area_aplicar") return AREA_ICONS[label] ?? Briefcase;
   if (fieldKey === "oficio_profesion") return PROFESION_ICONS[label] ?? Briefcase;
   if (fieldKey === "rubros_laborales") return iconForRubro(label);
   return OPTION_ICONS[label] ?? CircleDot;

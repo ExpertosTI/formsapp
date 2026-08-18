@@ -54,10 +54,12 @@ export function getCandidateInitials(data: SubmissionData): string {
 }
 
 export function getCandidateHeadline(data: SubmissionData): string {
-  return (
-    String(data.oficio_profesion ?? data.especialidad ?? "").trim() ||
-    "Candidato"
-  );
+  const area = String(data.area_aplicar ?? "").trim();
+  const profesion = String(data.oficio_profesion ?? data.especialidad ?? "").trim();
+  if (area && profesion && area !== profesion) {
+    return `${area} · ${profesion}`;
+  }
+  return area || profesion || "Candidato";
 }
 
 /** Extrae número de sueldo aspirado (RD$) para filtros y estadísticas */
@@ -104,6 +106,7 @@ export function matchesSearch(data: SubmissionData, query: string): boolean {
   if (!query.trim()) return true;
   const q = query.toLowerCase();
   const haystack = [
+    data.area_aplicar,
     data.nombre,
     data.apellido,
     data.cedula,
@@ -125,6 +128,7 @@ export function matchesSearch(data: SubmissionData, query: string): boolean {
 }
 
 export const FIELD_LABELS: Record<string, string> = {
+  area_aplicar: "Área a aplicar",
   nombre: "Nombre",
   apellido: "Apellido",
   cedula: "Cédula",
@@ -217,6 +221,7 @@ export function groupFields(data: SubmissionData) {
     {
       title: "Perfil profesional",
       keys: [
+        "area_aplicar",
         "oficio_profesion",
         "rubros_laborales",
         "sectores_experiencia",

@@ -30,12 +30,22 @@ export interface FormSection {
 }
 
 export type ThemeMode = "dark" | "light" | "system";
+export type FormType = "simple" | "full";
 
 export interface TenantSettings {
+  formType?: FormType;
   sections?: Record<string, boolean>;
   themeMode?: ThemeMode;
   introText?: string;
 }
+
+export const AREA_OPTS = [
+  "Cobranza",
+  "Vendedor",
+  "Gerente de ventas",
+  "Reclutador",
+  "Cualquiera de las anteriores",
+];
 
 const SEXO_OPTS = ["Masculino", "Femenino"];
 const ESTADO_CIVIL_OPTS = ["Soltero/a", "Casado/a", "Unión libre", "Divorciado/a", "Viudo/a"];
@@ -59,6 +69,7 @@ export const RUBROS_LABORALES = [
 ];
 
 const STEP_TITLES: Record<string, string> = {
+  area_aplicar: "Área a la que deseas aplicar",
   nombre: "¿Cómo te llamas?",
   apellido: "¿Cómo te llamas?",
   cedula: "Documento de identidad",
@@ -99,10 +110,36 @@ const STEP_TITLES: Record<string, string> = {
 };
 
 function collectAllFields(settings: TenantSettings | null | undefined): FormField[] {
+  const formType = settings?.formType ?? "simple";
+  const areaField: FormField = {
+    key: "area_aplicar",
+    label: "Deseas aplicar para qué área:",
+    type: "select",
+    options: AREA_OPTS,
+    required: true,
+  };
+
+  if (formType === "simple") {
+    return [
+      areaField,
+      { key: "nombre", label: "Nombre", type: "text", required: true },
+      { key: "apellido", label: "Apellido", type: "text", required: true },
+      { key: "cedula", label: "Cédula", type: "text", required: true, placeholder: "402-1234567-8" },
+      { key: "celular", label: "Celular", type: "tel", required: true, placeholder: "(809) 555-1234" },
+      { key: "correo", label: "Correo electrónico", type: "email", required: true },
+      { key: "location", label: "Ubicación", type: "location", required: true },
+      { key: "oficio_profesion", label: "Oficio / Profesión", type: "select", options: PROFESIONES, required: true },
+      { key: "sueldo_aspirado", label: "Sueldo aspirado (RD$)", type: "text", required: true, placeholder: "Ej. 25,000" },
+      { key: "curriculum", label: "Curriculum vitae", type: "file", accept: ".pdf,.doc,.docx", required: true },
+      { key: "foto", label: "Foto reciente", type: "file", accept: "image/jpeg,image/png,image/webp", required: true },
+    ];
+  }
+
   const on = (key: string, defaultOn = true) =>
     settings?.sections?.[key] !== false && (defaultOn || settings?.sections?.[key] === true);
 
   const fields: FormField[] = [
+    areaField,
     { key: "nombre", label: "Nombre", type: "text", required: true },
     { key: "apellido", label: "Apellido", type: "text", required: true },
     { key: "cedula", label: "Cédula", type: "text", required: true, placeholder: "402-1234567-8" },
@@ -185,7 +222,7 @@ function chunkIntoWizardSteps(fields: FormField[], maxPerStep = 2): FormSection[
   let buffer: FormField[] = [];
 
   for (const field of fields) {
-    if (field.type === "location" || field.type === "work_experience") {
+    if (field.type === "location" || field.type === "work_experience" || field.key === "area_aplicar") {
       if (buffer.length) {
         sections.push(makeStep(buffer, sections.length));
         buffer = [];
@@ -225,3 +262,4 @@ export function buildFormSections(settings: TenantSettings | null | undefined): 
 /** @deprecated use rubros_laborales */
 export const SECTORES_EXPERIENCIA = RUBROS_LABORALES;
 export const PROVINCIAS_RD: string[] = [];
+

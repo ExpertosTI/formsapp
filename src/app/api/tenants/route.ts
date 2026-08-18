@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
     let primaryColor: string;
     let accentColor: string;
     let backgroundColor: string;
+    let formType = "simple";
     let logoFile: File | null = null;
 
     if (contentType.includes("multipart/form-data")) {
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
       primaryColor = String(formData.get("primaryColor") ?? "#1b2055").trim();
       accentColor = String(formData.get("accentColor") ?? "#2dd4bf").trim();
       backgroundColor = String(formData.get("backgroundColor") ?? "#0f172a").trim();
+      formType = String(formData.get("formType") ?? "simple").trim();
       const file = formData.get("logo");
       if (file instanceof File && file.size > 0) logoFile = file;
     } else {
@@ -43,6 +45,7 @@ export async function POST(req: NextRequest) {
       primaryColor = String(body.primaryColor ?? "#1b2055").trim();
       accentColor = String(body.accentColor ?? "#2dd4bf").trim();
       backgroundColor = String(body.backgroundColor ?? "#0f172a").trim();
+      formType = String(body.formType ?? "simple").trim();
     }
 
     if (!name || name.length < 2) {
@@ -92,7 +95,9 @@ export async function POST(req: NextRequest) {
         backgroundColor,
         logo,
         active: true,
-        settings: {},
+        settings: {
+          formType: formType === "full" ? "full" : "simple",
+        },
       },
     });
 

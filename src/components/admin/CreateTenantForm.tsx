@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Building2, Loader2, Plus, Link2, Copy, Check, ImagePlus, Trash2 } from "lucide-react";
 import { slugify } from "@/lib/slug";
 import { TenantBrandLogo } from "@/components/forms/TenantBrandLogo";
+import type { FormType } from "@/lib/form-config";
 
 export function CreateTenantForm() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export function CreateTenantForm() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
+  const [formType, setFormType] = useState<FormType>("simple");
   const [primaryColor, setPrimaryColor] = useState("#1b2055");
   const [accentColor, setAccentColor] = useState("#2dd4bf");
   const [backgroundColor, setBackgroundColor] = useState("#0f172a");
@@ -137,6 +139,48 @@ export function CreateTenantForm() {
             <label className="tl-label">Contraseña inicial *</label>
             <input name="adminPassword" type="password" required minLength={8} className="tl-input" placeholder="Mínimo 8 caracteres" />
           </div>
+        </div>
+
+        <div>
+          <label className="tl-label">Formulario de candidatos a utilizar *</label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setFormType("simple")}
+              className={`p-3.5 rounded-xl border text-left transition-all ${
+                formType === "simple"
+                  ? "border-teal-400 bg-teal-500/10 text-white"
+                  : "border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold">Simplificado (Recomendado)</span>
+                {formType === "simple" && <Check className="w-3.5 h-3.5 text-teal-400" />}
+              </div>
+              <p className="text-[11px] leading-relaxed text-slate-400">
+                Formulario corto de 3 pasos: área deseada, datos personales, ubicación y CV.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormType("full")}
+              className={`p-3.5 rounded-xl border text-left transition-all ${
+                formType === "full"
+                  ? "border-teal-400 bg-teal-500/10 text-white"
+                  : "border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold">Completo (Exhaustivo)</span>
+                {formType === "full" && <Check className="w-3.5 h-3.5 text-teal-400" />}
+              </div>
+              <p className="text-[11px] leading-relaxed text-slate-400">
+                Formulario completo multipaso con experiencia laboral previa, educación y referencias.
+              </p>
+            </button>
+          </div>
+          <input type="hidden" name="formType" value={formType} />
         </div>
 
         <div>

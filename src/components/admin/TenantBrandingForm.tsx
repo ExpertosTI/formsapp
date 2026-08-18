@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ImagePlus, Loader2, Trash2, Check, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { TenantBrandLogo } from "@/components/forms/TenantBrandLogo";
-import type { TenantSettings, ThemeMode } from "@/lib/form-config";
+import type { FormType, TenantSettings, ThemeMode } from "@/lib/form-config";
 
 export interface TenantBrandingInitial {
   slug: string;
@@ -32,6 +32,7 @@ export function TenantBrandingForm({ tenant }: Props) {
   const [primaryColor, setPrimaryColor] = useState(tenant.primaryColor || "#1b2055");
   const [accentColor, setAccentColor] = useState(tenant.accentColor || "#2dd4bf");
   const [backgroundColor, setBackgroundColor] = useState(tenant.backgroundColor || "#0f172a");
+  const [formType, setFormType] = useState<FormType>(settings.formType ?? "simple");
   const [introText, setIntroText] = useState(settings.introText ?? "");
   const [themeMode, setThemeMode] = useState<ThemeMode>(settings.themeMode ?? "system");
   const [logoPath, setLogoPath] = useState(tenant.logo);
@@ -82,6 +83,7 @@ export function TenantBrandingForm({ tenant }: Props) {
     fd.set("primaryColor", primaryColor);
     fd.set("accentColor", accentColor);
     fd.set("backgroundColor", backgroundColor);
+    fd.set("formType", formType);
     fd.set("introText", introText);
     fd.set("themeMode", themeMode);
     if (removeLogo) fd.set("removeLogo", "1");
@@ -180,6 +182,51 @@ export function TenantBrandingForm({ tenant }: Props) {
             className="tl-input resize-y min-h-[80px]"
             placeholder="Completa cada paso con información verídica…"
           />
+        </div>
+      </section>
+
+      <section className="p-5 sm:p-6 tl-card space-y-4">
+        <h2 className="text-sm font-semibold text-white">Formulario de candidatos</h2>
+        <p className="text-xs text-slate-400">
+          Elige qué tipo de formulario llenarán los postulantes de tu empresa.
+        </p>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setFormType("simple")}
+            className={`p-4 rounded-xl border text-left transition-all ${
+              formType === "simple"
+                ? "border-teal-400 bg-teal-500/10 text-white"
+                : "border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold">Simplificado (Recomendado)</span>
+              {formType === "simple" && <Check className="w-4 h-4 text-teal-400" />}
+            </div>
+            <p className="text-[11px] leading-relaxed text-slate-400">
+              Formulario corto de 3 pasos: selección de área, datos personales básicos, ubicación y curriculum.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFormType("full")}
+            className={`p-4 rounded-xl border text-left transition-all ${
+              formType === "full"
+                ? "border-teal-400 bg-teal-500/10 text-white"
+                : "border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold">Completo (Exhaustivo)</span>
+              {formType === "full" && <Check className="w-4 h-4 text-teal-400" />}
+            </div>
+            <p className="text-[11px] leading-relaxed text-slate-400">
+              Formulario completo multipaso con experiencia laboral previa, preparación académica y referencias.
+            </p>
+          </button>
         </div>
       </section>
 

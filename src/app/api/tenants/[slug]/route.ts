@@ -73,6 +73,7 @@ export async function PATCH(
     const primaryColor = String(formData.get("primaryColor") ?? "").trim();
     const accentColor = String(formData.get("accentColor") ?? "").trim();
     const backgroundColor = String(formData.get("backgroundColor") ?? "").trim();
+    const formTypeRaw = String(formData.get("formType") ?? "").trim();
     const introText = String(formData.get("introText") ?? "").trim();
     const themeModeRaw = String(formData.get("themeMode") ?? "").trim();
     const removeLogo = String(formData.get("removeLogo") ?? "") === "1";
@@ -96,12 +97,14 @@ export async function PATCH(
     const themeMode = themeModes.includes(themeModeRaw as ThemeMode)
       ? (themeModeRaw as ThemeMode)
       : undefined;
+    const formType = formTypeRaw === "full" || formTypeRaw === "simple" ? formTypeRaw : undefined;
 
     const prevSettings = (tenant.settings ?? {}) as TenantSettings;
     const settings: TenantSettings = {
       ...prevSettings,
       introText: introText || undefined,
       ...(themeMode ? { themeMode } : {}),
+      ...(formType ? { formType } : {}),
     };
 
     let logo = tenant.logo;
