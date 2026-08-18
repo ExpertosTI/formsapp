@@ -54,6 +54,9 @@ DATABASE_URL="$MIGRATE_URL" npx prisma db push --skip-generate
 echo "==> Migrando datos Ecofast (upsert, no borra)..."
 DATABASE_URL="$MIGRATE_URL" node migration_backup/migrate_sql.js
 
+echo "==> Compilando Next.js..."
+npm run build
+
 echo "==> Construyendo imagen Docker..."
 docker build -t talentolink:latest .
 
