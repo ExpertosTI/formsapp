@@ -129,6 +129,9 @@ export function matchesSearch(data: SubmissionData, query: string): boolean {
 
 export const FIELD_LABELS: Record<string, string> = {
   area_aplicar: "Área a aplicar",
+  modalidad_compensacion: "Modalidad de compensación",
+  aporte_empresa: "Aporte a la empresa",
+  disposicion_capacitacion: "Disposición a capacitación y metas",
   nombre: "Nombre",
   apellido: "Apellido",
   cedula: "Cédula",
@@ -219,10 +222,13 @@ export function groupFields(data: SubmissionData) {
       ],
     },
     {
-      title: "Perfil profesional",
+      title: "Perfil profesional y expectativas",
       keys: [
         "area_aplicar",
         "oficio_profesion",
+        "modalidad_compensacion",
+        "disposicion_capacitacion",
+        "aporte_empresa",
         "rubros_laborales",
         "sectores_experiencia",
         "habilidades",

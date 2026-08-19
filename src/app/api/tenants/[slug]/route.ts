@@ -99,12 +99,21 @@ export async function PATCH(
       : undefined;
     const formType = formTypeRaw === "full" || formTypeRaw === "simple" ? formTypeRaw : undefined;
 
+    const sectionsRaw = String(formData.get("sections") ?? "").trim();
+    let sections: Record<string, boolean> | undefined;
+    if (sectionsRaw) {
+      try {
+        sections = JSON.parse(sectionsRaw);
+      } catch {}
+    }
+
     const prevSettings = (tenant.settings ?? {}) as TenantSettings;
     const settings: TenantSettings = {
       ...prevSettings,
       introText: introText || undefined,
       ...(themeMode ? { themeMode } : {}),
       ...(formType ? { formType } : {}),
+      ...(sections ? { sections: { ...(prevSettings.sections ?? {}), ...sections } } : {}),
     };
 
     let logo = tenant.logo;

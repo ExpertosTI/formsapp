@@ -47,6 +47,20 @@ export const AREA_OPTS = [
   "Cualquiera de las anteriores",
 ];
 
+export const MODALIDAD_COMPENSACION_OPTS = [
+  "Sueldo fijo más comisión",
+  "Solo sueldo fijo",
+  "Solo comisión, siempre que permita generar más de RD$40,000 mensuales",
+  "Prefiero un sueldo fijo, aunque sea mínimo",
+];
+
+export const DISPOSICION_CAPACITACION_OPTS = [
+  "Sí, completamente",
+  "Sí, si recibo el acompañamiento necesario",
+  "No estoy seguro/a",
+  "No",
+];
+
 const SEXO_OPTS = ["Masculino", "Femenino"];
 const ESTADO_CIVIL_OPTS = ["Soltero/a", "Casado/a", "Unión libre", "Divorciado/a", "Viudo/a"];
 const SI_NO = ["Sí", "No"];
@@ -70,6 +84,9 @@ export const RUBROS_LABORALES = [
 
 const STEP_TITLES: Record<string, string> = {
   area_aplicar: "Área a la que deseas aplicar",
+  modalidad_compensacion: "Modalidad de compensación preferida",
+  aporte_empresa: "Tu aporte y compromiso",
+  disposicion_capacitacion: "Capacitación y trabajo por metas",
   nombre: "¿Cómo te llamas?",
   apellido: "¿Cómo te llamas?",
   cedula: "Documento de identidad",
@@ -111,6 +128,9 @@ const STEP_TITLES: Record<string, string> = {
 
 function collectAllFields(settings: TenantSettings | null | undefined): FormField[] {
   const formType = settings?.formType ?? "simple";
+  const on = (key: string, defaultOn = true) =>
+    settings?.sections?.[key] !== false && (defaultOn || settings?.sections?.[key] === true);
+
   const areaField: FormField = {
     key: "area_aplicar",
     label: "Deseas aplicar para qué área:",
@@ -119,8 +139,33 @@ function collectAllFields(settings: TenantSettings | null | undefined): FormFiel
     required: true,
   };
 
+  const modalCompensacionField: FormField = {
+    key: "modalidad_compensacion",
+    label: "¿Qué modalidad de compensación prefieres?",
+    type: "select",
+    options: MODALIDAD_COMPENSACION_OPTS,
+    required: true,
+  };
+
+  const dispCapacitacionField: FormField = {
+    key: "disposicion_capacitacion",
+    label: "¿Estás dispuesto/a a capacitarte, cumplir metas y trabajar bajo resultados?",
+    type: "select",
+    options: DISPOSICION_CAPACITACION_OPTS,
+    required: true,
+  };
+
+  const aporteEmpresaField: FormField = {
+    key: "aporte_empresa",
+    label:
+      "Si te diéramos la oportunidad de formar parte de nuestra empresa, ¿qué estarías dispuesto/a a aportar para crecer, alcanzar tus metas y contribuir al éxito del equipo?",
+    type: "textarea",
+    placeholder: "Escribe tu respuesta aquí...",
+    required: true,
+  };
+
   if (formType === "simple") {
-    return [
+    const simpleFields: FormField[] = [
       areaField,
       { key: "nombre", label: "Nombre", type: "text", required: true },
       { key: "apellido", label: "Apellido", type: "text", required: true },
@@ -130,13 +175,19 @@ function collectAllFields(settings: TenantSettings | null | undefined): FormFiel
       { key: "location", label: "Ubicación", type: "location", required: true },
       { key: "oficio_profesion", label: "Oficio / Profesión", type: "select", options: PROFESIONES, required: true },
       { key: "sueldo_aspirado", label: "Sueldo aspirado (RD$)", type: "text", required: true, placeholder: "Ej. 25,000" },
-      { key: "curriculum", label: "Curriculum vitae", type: "file", accept: ".pdf,.doc,.docx", required: true },
-      { key: "foto", label: "Foto reciente", type: "file", accept: "image/jpeg,image/png,image/webp", required: true },
     ];
-  }
 
-  const on = (key: string, defaultOn = true) =>
-    settings?.sections?.[key] !== false && (defaultOn || settings?.sections?.[key] === true);
+    if (on("modalidad_compensacion", true)) simpleFields.push(modalCompensacionField);
+    if (on("disposicion_capacitacion", true)) simpleFields.push(dispCapacitacionField);
+    if (on("aporte_empresa", true)) simpleFields.push(aporteEmpresaField);
+
+    simpleFields.push(
+      { key: "curriculum", label: "Curriculum vitae", type: "file", accept: ".pdf,.doc,.docx", required: true },
+      { key: "foto", label: "Foto reciente", type: "file", accept: "image/jpeg,image/png,image/webp", required: true }
+    );
+
+    return simpleFields;
+  }
 
   const fields: FormField[] = [
     areaField,
@@ -164,6 +215,10 @@ function collectAllFields(settings: TenantSettings | null | undefined): FormFiel
     { key: "habilidades", label: "Habilidades", type: "textarea", placeholder: "Ej. Excel, inglés, manejo de caja…" },
     { key: "red_profesional", label: "Red profesional (opcional)", type: "url", placeholder: "https://…" },
   ];
+
+  if (on("modalidad_compensacion", true)) fields.push(modalCompensacionField);
+  if (on("disposicion_capacitacion", true)) fields.push(dispCapacitacionField);
+  if (on("aporte_empresa", true)) fields.push(aporteEmpresaField);
 
   if (on("experiencia_laboral", true)) {
     fields.push(
@@ -216,13 +271,20 @@ function collectAllFields(settings: TenantSettings | null | undefined): FormFiel
   return fields;
 }
 
-/** Divide todos los campos en pasos cortos (máx. 2 por pantalla) */
+//** Divide todos los campos en pasos cortos (máx. 2 por pantalla) */
 function chunkIntoWizardSteps(fields: FormField[], maxPerStep = 2): FormSection[] {
   const sections: FormSection[] = [];
   let buffer: FormField[] = [];
 
   for (const field of fields) {
-    if (field.type === "location" || field.type === "work_experience" || field.key === "area_aplicar") {
+    if (
+      field.type === "location" ||
+      field.type === "work_experience" ||
+      field.key === "area_aplicar" ||
+      field.key === "modalidad_compensacion" ||
+      field.key === "disposicion_capacitacion" ||
+      field.key === "aporte_empresa"
+    ) {
       if (buffer.length) {
         sections.push(makeStep(buffer, sections.length));
         buffer = [];

@@ -45,6 +45,9 @@ export const GROUP_ICONS: Record<string, LucideIcon> = {
 
 export const FIELD_ICONS: Record<string, LucideIcon> = {
   area_aplicar: Briefcase,
+  modalidad_compensacion: DollarSign,
+  aporte_empresa: Sparkles,
+  disposicion_capacitacion: TrendingUp,
   nombre: User,
   apellido: User,
   cedula: FileText,
@@ -122,6 +125,13 @@ const AREA_ICONS: Record<string, LucideIcon> = {
 const OPTION_ICONS: Record<string, LucideIcon> = {
   Sí: Check,
   No: X,
+  "Sí, completamente": Check,
+  "Sí, si recibo el acompañamiento necesario": Check,
+  "No estoy seguro/a": CircleDot,
+  "Sueldo fijo más comisión": DollarSign,
+  "Solo sueldo fijo": DollarSign,
+  "Solo comisión, siempre que permita generar más de RD$40,000 mensuales": TrendingUp,
+  "Prefiero un sueldo fijo, aunque sea mínimo": DollarSign,
   Masculino: User,
   Femenino: User,
   "Soltero/a": Heart,

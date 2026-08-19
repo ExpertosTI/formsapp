@@ -11,7 +11,7 @@ interface Props {
   onChange: (value: string) => void;
   onFocus?: () => void;
   theme: { primary: string; accent: string };
-  columns?: 2 | 3;
+  columns?: 1 | 2 | 3;
 }
 
 export function FormSelectCards({
@@ -25,7 +25,13 @@ export function FormSelectCards({
 }: Props) {
   return (
     <div
-      className={`grid gap-2 ${columns === 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2"}`}
+      className={`grid gap-2 ${
+        columns === 1
+          ? "grid-cols-1"
+          : columns === 3
+            ? "grid-cols-2 sm:grid-cols-3"
+            : "grid-cols-2"
+      }`}
       onFocus={onFocus}
     >
       {options.map((opt) => {

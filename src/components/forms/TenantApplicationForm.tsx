@@ -345,7 +345,8 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
     );
   };
 
-  const selectColumns = (fieldKey: string, count: number): 2 | 3 => {
+  const selectColumns = (fieldKey: string, count: number): 1 | 2 | 3 => {
+    if (fieldKey === "modalidad_compensacion" || fieldKey === "disposicion_capacitacion") return 1;
     if (fieldKey === "area_aplicar" || fieldKey === "oficio_profesion" || count > 4) return 2;
     if (count <= 3) return 2;
     return 3;

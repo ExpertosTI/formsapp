@@ -33,6 +33,11 @@ export function TenantBrandingForm({ tenant }: Props) {
   const [accentColor, setAccentColor] = useState(tenant.accentColor || "#2dd4bf");
   const [backgroundColor, setBackgroundColor] = useState(tenant.backgroundColor || "#0f172a");
   const [formType, setFormType] = useState<FormType>(settings.formType ?? "simple");
+  const sectionFlags = settings.sections ?? {};
+  const [showCompensacion, setShowCompensacion] = useState(sectionFlags.modalidad_compensacion !== false);
+  const [showCapacitacion, setShowCapacitacion] = useState(sectionFlags.disposicion_capacitacion !== false);
+  const [showAporte, setShowAporte] = useState(sectionFlags.aporte_empresa !== false);
+
   const [introText, setIntroText] = useState(settings.introText ?? "");
   const [themeMode, setThemeMode] = useState<ThemeMode>(settings.themeMode ?? "system");
   const [logoPath, setLogoPath] = useState(tenant.logo);
@@ -84,6 +89,15 @@ export function TenantBrandingForm({ tenant }: Props) {
     fd.set("accentColor", accentColor);
     fd.set("backgroundColor", backgroundColor);
     fd.set("formType", formType);
+    fd.set(
+      "sections",
+      JSON.stringify({
+        ...sectionFlags,
+        modalidad_compensacion: showCompensacion,
+        disposicion_capacitacion: showCapacitacion,
+        aporte_empresa: showAporte,
+      })
+    );
     fd.set("introText", introText);
     fd.set("themeMode", themeMode);
     if (removeLogo) fd.set("removeLogo", "1");
@@ -227,6 +241,45 @@ export function TenantBrandingForm({ tenant }: Props) {
               Formulario completo multipaso con experiencia laboral previa, preparación académica y referencias.
             </p>
           </button>
+        </div>
+
+        <div className="pt-4 border-t border-white/10 space-y-3">
+          <p className="text-xs font-semibold text-white">Preguntas de expectativas y metas (Activar / Desactivar)</p>
+          <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-300">
+            <input
+              type="checkbox"
+              checked={showCompensacion}
+              onChange={(e) => setShowCompensacion(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-teal-500 focus:ring-teal-400 shrink-0"
+            />
+            <span>
+              <strong>Modalidad de compensación:</strong> ¿Qué modalidad de compensación prefieres? (Sueldo fijo, comisiones, etc.)
+            </span>
+          </label>
+
+          <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-300">
+            <input
+              type="checkbox"
+              checked={showCapacitacion}
+              onChange={(e) => setShowCapacitacion(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-teal-500 focus:ring-teal-400 shrink-0"
+            />
+            <span>
+              <strong>Capacitación y resultados:</strong> ¿Estás dispuesto/a a capacitarte, cumplir metas y trabajar bajo resultados?
+            </span>
+          </label>
+
+          <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-300">
+            <input
+              type="checkbox"
+              checked={showAporte}
+              onChange={(e) => setShowAporte(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-teal-500 focus:ring-teal-400 shrink-0"
+            />
+            <span>
+              <strong>Aporte a la empresa:</strong> ¿Qué estarías dispuesto/a a aportar para crecer, alcanzar metas y contribuir al éxito del equipo?
+            </span>
+          </label>
         </div>
       </section>
 
