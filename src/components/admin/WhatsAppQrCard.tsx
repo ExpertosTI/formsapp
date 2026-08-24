@@ -1,24 +1,41 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   QrCode,
-  Smartphone,
   CheckCircle2,
-  AlertCircle,
+  AlertTriangle,
   RefreshCw,
-  PowerOff,
+  Unlink,
   Send,
+  Smartphone,
+  Info,
   Loader2,
-  BellRing,
-  HelpCircle,
+  ShieldCheck,
+  Activity,
 } from "lucide-react";
 
 interface Props {
   tenantSlug: string;
   initialPhone?: string;
   initialNotifyOnSubmission?: boolean;
-  onAlertsChange: (notify: boolean, phone: string) => void;
+  onAlertsChange?: (notify: boolean, phone: string) => void;
+}
+
+interface DiagInfo {
+  ok: boolean;
+  configured: boolean;
+  apiHost?: string;
+  keyLen?: number;
+  source?: string;
+  probeStatus?: number;
+  probeOk?: boolean;
+  createStatus?: number;
+  canCreate?: boolean;
+  instanceCount?: number | null;
+  hint?: string;
+  detail?: string;
+  message?: string;
 }
 
 export function WhatsAppQrCard({
@@ -33,12 +50,17 @@ export function WhatsAppQrCard({
   const [connected, setConnected] = useState(false);
   const [state, setState] = useState<string>("unknown");
   const [qrCode, setQrCode] = useState<string | null>(null);
-  const [tip, setTip] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const [notifyAdmin, setNotifyAdmin] = useState(initialNotifyOnSubmission);
+  const [tip, setTip] = useState<string>("");
   const [adminPhone, setAdminPhone] = useState(initialPhone);
+  const [notifyOnSubmission, setNotifyOnSubmission] = useState(initialNotifyOnSubmission);
   const [testSending, setTestSending] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [testStatus, setTestStatus] = useState<string | null>(null);
+
+  // Diagnóstico
+  const [showDiag, setShowDiag] = useState(false);
+  const [diagLoading, setDiagLoading] = useState(false);
+  const [diagData, setDiagData] = useState<DiagInfo | null>(null);
 
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -76,7 +98,6 @@ export function WhatsAppQrCard({
           stopPolling();
         } else if (withQr && data.qr) {
           setQrCode(data.qr);
-          // Iniciar polling automático para detectar cuando escanee el QR
           stopPolling();
           pollTimerRef.current = setInterval(async () => {
             try {
@@ -92,7 +113,7 @@ export function WhatsAppQrCard({
             } catch {}
           }, 3000);
         } else if (withQr && !data.qr) {
-          setError(data.error || "No se pudo generar el código QR");
+          setError(data.error || data.message || "No se pudo generar el código QR");
         }
       } catch (err) {
         setError("Error de conexión al consultar WhatsApp");
@@ -138,57 +159,75 @@ export function WhatsAppQrCard({
 
   async function handleSendTest() {
     if (!adminPhone.trim()) {
-      alert("Por favor ingresa un número de celular");
+      setError("Ingresa un número de celular de prueba");
       return;
     }
     setTestSending(true);
-    setTestResult(null);
+    setTestStatus(null);
+    setError("");
     try {
       const res = await fetch("/api/whatsapp/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: tenantSlug, action: "test", phone: adminPhone }),
+        body: JSON.stringify({
+          slug: tenantSlug,
+          action: "test",
+          phone: adminPhone,
+        }),
       });
       const data = await res.json().catch(() => ({}));
-      if (data.sent) {
-        setTestResult({ ok: true, msg: "¡Mensaje de prueba enviado exitosamente!" });
+      if (res.ok && data.sent) {
+        setTestStatus("¡Mensaje de prueba enviado exitosamente!");
+        setTimeout(() => setTestStatus(null), 4000);
       } else {
-        setTestResult({
-          ok: false,
-          msg: data.error || (data.manualUrl ? "Enviado a través de enlace manual" : "No se pudo enviar"),
-        });
+        setError(data.error || "No se pudo enviar el mensaje");
       }
     } catch {
-      setTestResult({ ok: false, msg: "Error al enviar mensaje de prueba" });
+      setError("Error al enviar mensaje de prueba");
     } finally {
       setTestSending(false);
-      setTimeout(() => setTestResult(null), 5000);
     }
   }
 
-  function handleAlertsToggle(checked: boolean) {
-    setNotifyAdmin(checked);
-    onAlertsChange(checked, adminPhone);
+  async function handleRunDiag() {
+    setDiagLoading(true);
+    setShowDiag(true);
+    try {
+      const res = await fetch("/api/whatsapp/diag");
+      const data = await res.json().catch(() => ({}));
+      setDiagData(data);
+    } catch {
+      setDiagData({
+        ok: false,
+        configured: false,
+        message: "No se pudo conectar con el endpoint de diagnóstico.",
+      });
+    } finally {
+      setDiagLoading(false);
+    }
+  }
+
+  function handleNotifyChange(checked: boolean) {
+    setNotifyOnSubmission(checked);
+    onAlertsChange?.(checked, adminPhone);
   }
 
   function handlePhoneChange(val: string) {
     setAdminPhone(val);
-    onAlertsChange(notifyAdmin, val);
+    onAlertsChange?.(notifyOnSubmission, val);
   }
 
   return (
-    <section className="space-y-6">
-      {/* Tarjeta de Conexión QR */}
-      <div className="p-5 sm:p-6 tl-card space-y-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6">
+      {/* TARJETA DE CONEXIÓN WHATSAPP */}
+      <section className="p-5 sm:p-6 tl-card space-y-5">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
-              className={`flex items-center justify-center w-10 h-10 rounded-xl ${
+              className={`flex items-center justify-center w-10 h-10 rounded-2xl border transition-colors ${
                 connected
-                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                  : qrCode
-                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                  : "bg-slate-500/10 text-slate-400 border border-white/10"
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  : "bg-white/5 text-slate-400 border-white/10"
               }`}
             >
               <Smartphone className="w-5 h-5" />
@@ -202,140 +241,213 @@ export function WhatsAppQrCard({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleRunDiag}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-teal-300 hover:bg-white/5 border border-white/10 text-xs flex items-center gap-1"
+              title="Diagnóstico de Evolution API"
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Diagnóstico</span>
+            </button>
+
             {connected ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Vinculado
               </span>
-            ) : qrCode ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 animate-pulse">
-                <QrCode className="w-3.5 h-3.5" />
-                Esperando escaneo
-              </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-slate-500/15 text-slate-300 border border-white/10">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full bg-white/5 text-slate-400 border border-white/10">
                 Sin vincular
               </span>
             )}
           </div>
         </div>
 
-        {error && (
-          <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-300">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>{error}</span>
+        {/* ALERTA DE NO CONFIGURADO */}
+        {!configured && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Evolution API no configurada</p>
+              <p className="text-amber-300/80 mt-0.5">
+                Verifica las variables de Evolution API en el servidor (.evolution.local o EVOLUTION_API_KEY).
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Acciones principales de escaneo */}
+        {/* MENSAJE DE ERROR */}
+        {error && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold">{error}</p>
+              {tip && <p className="text-red-300/80 mt-0.5">{tip}</p>}
+            </div>
+          </div>
+        )}
+
+        {/* PANEL DE DIAGNÓSTICO */}
+        {showDiag && (
+          <div className="p-4 rounded-xl bg-slate-900/90 border border-teal-500/30 text-xs space-y-3 animate-tl-fade-in">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <div className="flex items-center gap-2 font-bold text-teal-300">
+                <Activity className="w-4 h-4" />
+                Diagnóstico de Evolution API
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDiag(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            {diagLoading ? (
+              <div className="flex items-center gap-2 text-slate-400 py-3">
+                <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
+                Ejecutando pruebas de conexión con el servidor de WhatsApp...
+              </div>
+            ) : diagData ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2 rounded bg-white/5">
+                    <span className="text-slate-400">Servidor API:</span>{" "}
+                    <span className="font-mono text-white">{diagData.apiHost || "—"}</span>
+                  </div>
+                  <div className="p-2 rounded bg-white/5">
+                    <span className="text-slate-400">Longitud Key:</span>{" "}
+                    <span className="font-mono text-white">{diagData.keyLen ? `${diagData.keyLen} chars` : "0"}</span>
+                  </div>
+                  <div className="p-2 rounded bg-white/5">
+                    <span className="text-slate-400">Prueba Conexión:</span>{" "}
+                    <span className={diagData.probeOk ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
+                      {diagData.probeOk ? "HTTP 200 OK" : `Error (${diagData.probeStatus || "Fallo"})`}
+                    </span>
+                  </div>
+                  <div className="p-2 rounded bg-white/5">
+                    <span className="text-slate-400">Permiso Creación:</span>{" "}
+                    <span className={diagData.canCreate ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
+                      {diagData.canCreate ? "Permitido (Global)" : `Denegado (${diagData.createStatus})`}
+                    </span>
+                  </div>
+                </div>
+
+                {diagData.hint && (
+                  <p className="text-teal-200 bg-teal-500/10 p-2.5 rounded-lg border border-teal-500/20">
+                    💡 {diagData.hint}
+                  </p>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {/* CÓDIGO QR EN PANTALLA */}
+        {qrCode && !connected && (
+          <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/[0.02] border border-teal-500/30 text-center space-y-4 animate-tl-fade-in">
+            <div className="p-3 bg-white rounded-2xl shadow-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={qrCode}
+                alt="Código QR de WhatsApp"
+                className="w-56 h-56 sm:w-64 sm:h-64 object-contain"
+              />
+            </div>
+            <div className="space-y-1 max-w-sm">
+              <p className="text-sm font-bold text-white">Escanea con tu WhatsApp</p>
+              <p className="text-xs text-slate-400">
+                Abre WhatsApp en tu teléfono ➔ <strong>Dispositivos vinculados</strong> ➔{" "}
+                <strong>Vincular un dispositivo</strong> y apunta la cámara a este código.
+              </p>
+              <p className="text-[11px] text-teal-400 animate-pulse pt-1">
+                Esperando escaneo… se detectará automáticamente.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ACCIONES DE CONEXIÓN */}
         <div className="flex flex-wrap items-center gap-3 pt-2">
           {!connected ? (
             <button
               type="button"
+              disabled={loading || !configured}
               onClick={() => checkStatus(true)}
-              disabled={loading}
-              className="tl-btn-primary"
+              className="tl-btn-primary text-xs"
             >
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <QrCode className="w-4 h-4" />
+                <QrCode className="w-3.5 h-3.5" />
               )}
               {qrCode ? "Regenerar código QR" : "Mostrar código QR"}
             </button>
           ) : (
             <button
               type="button"
-              onClick={handleDisconnect}
               disabled={loading}
-              className="tl-btn-ghost text-red-300 hover:text-red-200 hover:bg-red-500/10 border-red-500/20"
+              onClick={handleDisconnect}
+              className="tl-btn-ghost text-xs text-red-300 hover:text-red-200 border-red-500/20 hover:bg-red-500/10"
             >
-              <PowerOff className="w-4 h-4" />
+              {loading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Unlink className="w-3.5 h-3.5" />
+              )}
               Desvincular WhatsApp
             </button>
           )}
 
           <button
             type="button"
-            onClick={() => checkStatus(false)}
             disabled={checking}
-            className="tl-btn-ghost"
-            title="Refrescar estado"
+            onClick={() => checkStatus(false)}
+            className="tl-btn-ghost text-xs"
           >
-            <RefreshCw className={`w-4 h-4 ${checking ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${checking ? "animate-spin" : ""}`} />
             Comprobar conexión
           </button>
         </div>
+      </section>
 
-        {/* Vista del código QR activo */}
-        {qrCode && !connected && (
-          <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 text-center space-y-4 max-w-sm mx-auto animate-tl-scale-in">
-            <p className="text-xs font-semibold text-white">Escanea este código con WhatsApp</p>
-            <div className="inline-block p-3 bg-white rounded-2xl shadow-xl">
-              <img
-                src={qrCode}
-                alt="Código QR de WhatsApp"
-                className="w-56 h-56 object-contain rounded-lg"
-              />
-            </div>
-            <div className="text-left bg-black/20 p-3.5 rounded-xl border border-white/5 space-y-1.5">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1">
-                <HelpCircle className="w-3.5 h-3.5" />
-                Instrucciones:
-              </p>
-              <ol className="text-xs text-slate-300 list-decimal list-inside space-y-1">
-                <li>Abre WhatsApp en tu teléfono.</li>
-                <li>Toca en <strong>Menú (⋮)</strong> o <strong>Ajustes</strong>.</li>
-                <li>Selecciona <strong>Dispositivos vinculados</strong>.</li>
-                <li>Toca en <strong>Vincular un dispositivo</strong> y apunta tu cámara a este código.</li>
-              </ol>
-            </div>
-            <p className="text-[11px] text-slate-400 animate-pulse">
-              Detectando escaneo automáticamente…
+      {/* TARJETA DE ALERTAS AUTOMÁTICAS */}
+      <section className="p-5 sm:p-6 tl-card space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-teal-500/10 text-teal-400">
+            <ShieldCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-white">Alertas de Nuevas Solicitudes</h2>
+            <p className="text-xs text-slate-400">
+              Recibe un aviso inmediato en tu WhatsApp cada vez que un postulante complete el formulario.
             </p>
           </div>
-        )}
-
-        {tip && !qrCode && (
-          <p className="text-xs text-slate-400 bg-white/[0.02] p-3 rounded-xl border border-white/5">
-            {tip}
-          </p>
-        )}
-      </div>
-
-      {/* Configuración de Notificaciones Automáticas */}
-      <div className="p-5 sm:p-6 tl-card space-y-4">
-        <div className="flex items-center gap-2">
-          <BellRing className="w-4 h-4 text-teal-400" />
-          <h3 className="text-sm font-semibold text-white">Alertas de Nuevas Solicitudes</h3>
         </div>
-        <p className="text-xs text-slate-400">
-          Recibe un aviso inmediato en tu WhatsApp cada vez que un postulante complete el formulario.
-        </p>
 
-        <div className="space-y-4 pt-2">
-          <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-300">
+        <div className="pt-2 space-y-4">
+          <label className="flex items-start gap-3 cursor-pointer select-none">
             <input
               type="checkbox"
-              checked={notifyAdmin}
-              onChange={(e) => handleAlertsToggle(e.target.checked)}
-              className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-teal-500 focus:ring-teal-400 shrink-0"
+              checked={notifyOnSubmission}
+              onChange={(e) => handleNotifyChange(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-white/10 bg-slate-900 text-teal-500 focus:ring-teal-500"
             />
-            <div>
-              <span className="font-semibold text-white">
-                Notificar al encargado de RRHH por WhatsApp
-              </span>
-              <p className="text-slate-400 text-[11px] mt-0.5">
+            <div className="text-xs">
+              <p className="font-semibold text-white">Notificar al encargado de RRHH por WhatsApp</p>
+              <p className="text-slate-400 mt-0.5">
                 Envía un resumen de la postulación (nombre del candidato, vacante, sueldo aspirado y teléfono).
               </p>
             </div>
           </label>
 
-          {notifyAdmin && (
-            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+          {notifyOnSubmission && (
+            <div className="pl-7 space-y-3 animate-tl-fade-in">
               <div>
                 <label className="tl-label" htmlFor="admin-phone">
-                  Número de celular para recibir alertas *
+                  Número de WhatsApp para recibir las alertas
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -343,41 +455,35 @@ export function WhatsAppQrCard({
                     type="tel"
                     value={adminPhone}
                     onChange={(e) => handlePhoneChange(e.target.value)}
-                    placeholder="809-555-1234"
-                    className="tl-input flex-1"
+                    placeholder="Ej. 809-555-1234 o 18095551234"
+                    className="tl-input text-xs max-w-sm"
                   />
-                  <button
-                    type="button"
-                    onClick={handleSendTest}
-                    disabled={testSending || !adminPhone.trim()}
-                    className="tl-btn-ghost text-xs shrink-0"
-                  >
-                    {testSending ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Send className="w-3.5 h-3.5" />
-                    )}
-                    Probar envío
-                  </button>
+                  {connected && (
+                    <button
+                      type="button"
+                      disabled={testSending || !adminPhone.trim()}
+                      onClick={handleSendTest}
+                      className="tl-btn-ghost text-xs whitespace-nowrap"
+                    >
+                      {testSending ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Send className="w-3.5 h-3.5" />
+                      )}
+                      Enviar prueba
+                    </button>
+                  )}
                 </div>
-                <p className="mt-1 text-[10px] text-slate-500">
-                  Formato dominicano con 10 dígitos (809, 829 o 849) o internacional con código de país.
+                {testStatus && <p className="mt-1.5 text-xs text-emerald-400">{testStatus}</p>}
+                <p className="mt-1 text-[11px] text-slate-500 flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  Formatos aceptados: República Dominicana (809, 829, 849) o internacional con código de país.
                 </p>
               </div>
-
-              {testResult && (
-                <p
-                  className={`text-xs ${
-                    testResult.ok ? "text-emerald-400" : "text-red-400"
-                  } animate-tl-fade-in`}
-                >
-                  {testResult.msg}
-                </p>
-              )}
             </div>
           )}
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

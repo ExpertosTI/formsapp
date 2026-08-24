@@ -112,8 +112,28 @@ export function resolveEvoCreds(): EvoCreds | null {
   return null;
 }
 
+export function evolutionApiUrl(): string {
+  return resolveEvoCreds()?.url || env("EVOLUTION_API_URL", DEFAULT_API_URL).replace(/\/$/, "");
+}
+
+export function evolutionApiKey(): string {
+  return resolveEvoCreds()?.key || "";
+}
+
 export function whatsappConfigured(): boolean {
   return Boolean(resolveEvoCreds());
+}
+
+export function getWhatsAppConfigStatus() {
+  const creds = resolveEvoCreds();
+  if (!creds) {
+    return { configured: false as const, reason: "EVOLUTION_API_KEY no disponible" };
+  }
+  return {
+    configured: true as const,
+    apiUrl: creds.url,
+    source: creds.source,
+  };
 }
 
 export function sanitizeInstancePart(raw: string): string {
