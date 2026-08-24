@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
       await prisma.tenant.update({
         where: { id: tenant.id },
         data: {
-          settings: { ...settings, whatsappInstance: instance } as Prisma.InputJsonValue,
+          settings: { ...settings, whatsappInstance: instance } as unknown as Prisma.InputJsonValue,
         },
       });
     }
@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
       await prisma.tenant.update({
         where: { id: tenant.id },
         data: {
-          settings: { ...settings, whatsappInstance: instance } as Prisma.InputJsonValue,
+          settings: { ...settings, whatsappInstance: instance } as unknown as Prisma.InputJsonValue,
         },
       });
     }
@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
       await prisma.tenant.update({
         where: { id: tenant.id },
         data: {
-          settings: { ...settings, whatsappInstance: instance } as Prisma.InputJsonValue,
+          settings: { ...settings, whatsappInstance: instance } as unknown as Prisma.InputJsonValue,
         },
       });
     }
@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
 
       await prisma.tenant.update({
         where: { id: tenant.id },
-        data: { settings: updatedSettings as Prisma.InputJsonValue },
+        data: { settings: updatedSettings as unknown as Prisma.InputJsonValue },
       });
 
       return NextResponse.json({ ok: true, message: "WhatsApp desvinculado correctamente" });

@@ -161,7 +161,7 @@ export async function PATCH(
         accentColor: accentColor || tenant.accentColor,
         backgroundColor: backgroundColor || tenant.backgroundColor,
         logo,
-        settings: settings as Prisma.InputJsonValue,
+        settings: settings as unknown as Prisma.InputJsonValue,
       },
       select: {
         slug: true,
