@@ -24,6 +24,56 @@ type EvoResult = {
   status?: number;
 };
 
+// ==========================================
+// GUARDARRAÍLES Y PARÁMETROS ANTI-BLOQUEO
+// ==========================================
+const BASE_QUEUE_GAP_MS = 6_500; // Espaciado mínimo de 6.5s entre envíos
+const MAX_QUEUE_PER_INSTANCE = 50; // Límite de mensajes en cola por empresa
+const MAX_HOURLY_MESSAGES_PER_INSTANCE = 80; // Máximo 80 mensajes por hora para evitar bloqueos
+const DEDUP_TTL_MS = 90_000; // 90 segundos de idempotencia contra envíos duplicados
+const MAX_SEND_ATTEMPTS = 3;
+const RETRY_BACKOFF_MS = [4_000, 12_000, 28_000];
+
+type WaJob = {
+  instanceName: string;
+  phone: string;
+  text: string;
+  attempt: number;
+  resolve: (v: { ok: boolean; sent: boolean; messageId?: string; error?: string }) => void;
+};
+
+const waQueues = new Map<string, WaJob[]>();
+const waDraining = new Map<string, boolean>();
+const waLastSentAt = new Map<string, number>();
+const waRecentKeys = new Map<string, number>();
+const waHourlyCounter = new Map<string, { count: number; windowStart: number }>();
+
+function waDedupKey(instanceName: string, phone: string, text: string) {
+  return `${instanceName}|${phone}|${text.slice(0, 100)}`;
+}
+
+function checkHourlyRateLimit(instanceName: string): boolean {
+  const now = Date.now();
+  const current = waHourlyCounter.get(instanceName);
+
+  if (!current || now - current.windowStart > 3_600_000) {
+    waHourlyCounter.set(instanceName, { count: 1, windowStart: now });
+    return true;
+  }
+
+  if (current.count >= MAX_HOURLY_MESSAGES_PER_INSTANCE) {
+    return false; // Límite por hora alcanzado
+  }
+
+  current.count += 1;
+  return true;
+}
+
+function getRandomJitterMs(): number {
+  // Jitter aleatorio entre 1.5s y 3.5s para simular comportamiento humano
+  return Math.floor(Math.random() * 2000) + 1500;
+}
+
 async function evoFetch(route: string, options: RequestInit = {}): Promise<EvoResult> {
   const creds = resolveEvoCreds();
   if (!creds) {
@@ -69,6 +119,7 @@ function parseEvoError(data: any, status?: number): string {
   if (status === 404) return "Instancia o recurso no encontrado (404)";
   if (status === 401) return "No autorizado (401) — API Key inválida";
   if (status === 403) return "Prohibido (403)";
+  if (status === 429) return "Límite de peticiones alcanzado (429 Rate Limit)";
   return status ? `Error HTTP ${status}` : "Falló la petición a Evolution API";
 }
 
@@ -275,7 +326,6 @@ export async function startWhatsAppSession(instanceName: string) {
   }
 
   if (created.success || already) {
-    // Si la instancia existe pero connect no devolvió QR directo, reintentar tras breve pausa
     await sleep(600);
     const retryConn = await evoFetch(`/instance/connect/${encodeURIComponent(name)}`);
     if (retryConn.success) {
@@ -318,6 +368,88 @@ export async function disconnectWhatsAppSession(instanceName: string) {
   return { ok: res.success, error: res.error };
 }
 
+// ==========================================
+// DRAIN DE COLA CON ESPACIADO Y REINTENTOS
+// ==========================================
+async function sendTextRaw(instanceName: string, phone: string, text: string) {
+  // Simular presencia de escritura previa (delay de 2s) para comportamiento 100% natural
+  return evoFetch(`/message/sendText/${encodeURIComponent(instanceName)}`, {
+    method: "POST",
+    body: JSON.stringify({
+      number: phone,
+      text,
+      delay: 2000,
+    }),
+  });
+}
+
+function isRetryableStatus(status?: number): boolean {
+  if (!status) return true;
+  return status === 408 || status === 425 || status === 429 || status >= 500;
+}
+
+async function drainWaQueue(instanceName: string) {
+  if (waDraining.get(instanceName)) return;
+  waDraining.set(instanceName, true);
+
+  try {
+    while (true) {
+      const q = waQueues.get(instanceName);
+      if (!q?.length) break;
+
+      const job = q.shift()!;
+      const last = waLastSentAt.get(instanceName) || 0;
+      const targetGap = BASE_QUEUE_GAP_MS + getRandomJitterMs();
+      const wait = targetGap - (Date.now() - last);
+
+      if (wait > 0) {
+        await sleep(wait);
+      }
+
+      // Comprobar guardarraíl de volumen por hora
+      if (!checkHourlyRateLimit(instanceName)) {
+        console.warn(`[whatsapp] Rate limit horario alcanzado para ${instanceName}`);
+        job.resolve({
+          ok: false,
+          sent: false,
+          error: "Guardarraíl anti-bloqueo: Límite de mensajes por hora alcanzado. Espere unos minutos.",
+        });
+        continue;
+      }
+
+      const result = await sendTextRaw(job.instanceName, job.phone, job.text);
+
+      if (result.success) {
+        waLastSentAt.set(instanceName, Date.now());
+        const msgId = result.data?.key?.id;
+        job.resolve({ ok: true, sent: true, messageId: msgId });
+        continue;
+      }
+
+      const retryable = isRetryableStatus(result.status);
+      if (retryable && job.attempt + 1 < MAX_SEND_ATTEMPTS) {
+        const next = job.attempt + 1;
+        const backoff = RETRY_BACKOFF_MS[Math.min(next, RETRY_BACKOFF_MS.length - 1)];
+        console.warn(
+          `[whatsapp] Reintento en cola ${instanceName} intento=${next} status=${result.status}`
+        );
+        await sleep(backoff);
+        q.unshift({ ...job, attempt: next });
+        continue;
+      }
+
+      console.warn(`[whatsapp] Falló envío: status=${result.status} error=${result.error}`);
+      job.resolve({ ok: false, sent: false, error: result.error || `Error HTTP ${result.status || 500}` });
+    }
+  } finally {
+    waDraining.set(instanceName, false);
+    const leftover = waQueues.get(instanceName);
+    if (leftover?.length) {
+      void drainWaQueue(instanceName);
+    }
+  }
+}
+
 export async function sendWhatsAppMessage(
   to: string,
   body: string,
@@ -341,53 +473,64 @@ export async function sendWhatsAppMessage(
     };
   }
 
-  const url = `${creds.url}/message/sendText/${encodeURIComponent(instance)}`;
+  // 1) Guardarraíl de Idempotencia y Deduplicación (90s)
+  const dedup = waDedupKey(instance, number, body);
+  const recent = waRecentKeys.get(dedup);
+  if (recent && Date.now() - recent < DEDUP_TTL_MS) {
+    return { ok: true, sent: true, provider: "evolution" };
+  }
+  waRecentKeys.set(dedup, Date.now());
 
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: creds.key,
-      },
-      body: JSON.stringify({ number, text: body }),
-    });
-
-    const data = (await res.json().catch(() => ({}))) as {
-      key?: { id?: string };
-      message?: string;
-      error?: string;
-      response?: { message?: string };
-    };
-
-    if (!res.ok) {
-      const errMsg =
-        data.message ?? data.error ?? data.response?.message ?? `Evolution API error ${res.status}`;
-      return {
-        ok: false,
-        sent: false,
-        manualUrl: whatsAppClickUrl(number, body),
-        error: errMsg,
-        provider: "manual",
-      };
+  // Limpieza periódica del mapa de deduplicación
+  if (waRecentKeys.size > 1000) {
+    const cutoff = Date.now() - DEDUP_TTL_MS;
+    for (const [k, t] of waRecentKeys) {
+      if (t < cutoff) waRecentKeys.delete(k);
     }
+  }
 
-    return {
-      ok: true,
-      sent: true,
-      provider: "evolution",
-      messageId: data.key?.id,
-    };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Error al conectar con Evolution API";
+  // 2) Guardarraíl de tamaño de cola por instancia
+  const q = waQueues.get(instance) || [];
+  if (q.length >= MAX_QUEUE_PER_INSTANCE) {
     return {
       ok: false,
       sent: false,
       manualUrl: whatsAppClickUrl(number, body),
-      error: msg,
+      error: "Cola de envíos de WhatsApp llena. Intenta de nuevo en un momento.",
       provider: "manual",
     };
   }
+
+  // 3) Encolar y procesar con ritmo humano
+  return new Promise<WhatsAppSendResult>((resolve) => {
+    q.push({
+      instanceName: instance,
+      phone: number,
+      text: body,
+      attempt: 0,
+      resolve: (res) => {
+        if (res.ok && res.sent) {
+          resolve({
+            ok: true,
+            sent: true,
+            provider: "evolution",
+            messageId: res.messageId,
+          });
+        } else {
+          resolve({
+            ok: false,
+            sent: false,
+            manualUrl: whatsAppClickUrl(number, body),
+            error: res.error,
+            provider: "manual",
+          });
+        }
+      },
+    });
+
+    waQueues.set(instance, q);
+    void drainWaQueue(instance);
+  });
 }
 
 export async function logNotification(params: {
