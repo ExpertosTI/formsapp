@@ -20,6 +20,12 @@ services:
       - SUPER_ADMIN_PASSWORD=${SUPER_ADMIN_PASSWORD}
       - ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET}
       - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY:-}
+      - EVOLUTION_API_URL=${EVOLUTION_API_URL:-https://evoapi.renace.tech}
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY:-}
+      - EVO_API_URL=${EVO_API_URL:-}
+      - EVO_API_KEY=${EVO_API_KEY:-}
+      - WHATSAPP_API_URL=${WHATSAPP_API_URL:-}
+      - WHATSAPP_API_KEY=${WHATSAPP_API_KEY:-}
     volumes:
       - renace-forms_uploads:/app/public/uploads
       - /var/www/ecofast/tenants:/var/www/ecofast/tenants:ro

@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { resolveEvoCreds, tenantInstanceName, whatsappConfigured } from "./evo";
+import {
+  isSafeTenantInstance,
+  resolveEvoCreds,
+  tenantInstanceName,
+  whatsappConfigured,
+} from "./evo";
 import { normalizeEvoPhone, whatsAppClickUrl } from "./phone";
 
 export interface WhatsAppSendResult {
@@ -22,11 +27,12 @@ type EvoResult = {
 async function evoFetch(route: string, options: RequestInit = {}): Promise<EvoResult> {
   const creds = resolveEvoCreds();
   if (!creds) {
-    return { success: false, error: "Evolution API no configurada" };
+    return { success: false, error: "Evolution API no está configurada en el servidor (.evolution.local / env)" };
   }
 
   try {
-    const res = await fetch(`${creds.url}${route}`, {
+    const fullUrl = `${creds.url}${route}`;
+    const res = await fetch(fullUrl, {
       ...options,
       signal: AbortSignal.timeout(25_000),
       headers: {
@@ -35,31 +41,93 @@ async function evoFetch(route: string, options: RequestInit = {}): Promise<EvoRe
         ...(options.headers || {}),
       },
     });
+
     const data = await res.json().catch(() => null);
     if (!res.ok) {
-      const msg = data?.message ?? data?.error ?? data?.response?.message ?? `HTTP ${res.status}`;
-      const errStr = Array.isArray(msg) ? msg.join(", ") : String(msg);
-      return { success: false, error: errStr, data, status: res.status };
+      const err = parseEvoError(data, res.status);
+      console.error(`[Evo API Error] ${route} -> Status ${res.status}:`, err, data);
+      return { success: false, error: err, data, status: res.status };
     }
     return { success: true, data, status: res.status };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "network_error";
+    const message = err instanceof Error ? err.message : "Error de red al conectar con Evolution API";
+    console.error(`[Evo Fetch Error] ${route}:`, message);
     return { success: false, error: message };
   }
 }
 
+function parseEvoError(data: any, status?: number): string {
+  const msg = data?.message ?? data?.error ?? data?.response?.message;
+  if (Array.isArray(msg)) {
+    return msg
+      .map((m) => (typeof m === "string" ? m : JSON.stringify(m)))
+      .join(", ")
+      .slice(0, 240);
+  }
+  if (typeof msg === "string" && msg.trim()) return msg.slice(0, 240);
+  if (msg && typeof msg === "object") return JSON.stringify(msg).slice(0, 240);
+  if (status === 404) return "Instancia o recurso no encontrado (404)";
+  if (status === 401) return "No autorizado (401) — API Key inválida";
+  if (status === 403) return "Prohibido (403)";
+  return status ? `Error HTTP ${status}` : "Falló la petición a Evolution API";
+}
+
+function humanizeEvolutionError(err?: string, status?: number, opts?: { probeOk?: boolean }): string {
+  const e = String(err || "").toLowerCase();
+  const probeOk = opts?.probeOk === true;
+
+  if (!probeOk && (status === 401 || e.includes("unauthorized"))) {
+    return "Evolution API rechazó la API Key (AUTHENTICATION_API_KEY).";
+  }
+  if (status === 401 || e.includes("unauthorized")) {
+    return "Evolution 401: La API Key configurada no tiene permisos para crear instancias.";
+  }
+  if (status === 403 || e.includes("forbidden")) {
+    return `Evolution 403 Forbidden: ${err || "Permiso denegado"}`;
+  }
+  if (status === 404 || e.includes("not found") || e.includes("does not exist") || e.includes("not exist")) {
+    return "La instancia aún no existe en Evolution API.";
+  }
+  if (e.includes("timeout") || e.includes("fetch failed") || e.includes("network")) {
+    return "No se pudo conectar con el servidor de Evolution API (revisa la URL o la red).";
+  }
+  if (err) return status ? `${err} (HTTP ${status})` : err;
+  return status ? `HTTP ${status}` : "Falló la comunicación con Evolution API";
+}
+
 function extractQr(data: any): string | null {
+  if (!data) return null;
   const candidates = [
     data?.qrcode?.base64,
     data?.base64,
     data?.qr?.base64,
+    data?.code,
+    data?.pairingCode,
     typeof data?.qrcode === "string" ? data.qrcode : null,
+    typeof data?.qr === "string" ? data.qr : null,
   ];
+
   for (const raw of candidates) {
     if (typeof raw !== "string") continue;
     const cleaned = raw.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
-    if (cleaned.length < 80) continue;
+    if (cleaned.length < 50) continue;
     return raw.startsWith("data:") ? raw : `data:image/png;base64,${cleaned}`;
+  }
+  return null;
+}
+
+function extractInstanceToken(data: any): string | null {
+  const candidates = [
+    data?.hash?.apikey,
+    data?.hash?.apiKey,
+    data?.apikey,
+    data?.apiKey,
+    data?.token,
+    data?.instance?.apikey,
+    data?.instance?.token,
+  ];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim().length >= 16) return c.trim();
   }
   return null;
 }
@@ -68,6 +136,22 @@ function extractState(data: any): string {
   return String(
     data?.instance?.state || data?.state || data?.connectionState || data?.status || "unknown"
   ).toLowerCase();
+}
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+export async function probeEvolutionAdmin() {
+  const result = await evoFetch("/instance/fetchInstances");
+  if (!result.success) {
+    return {
+      ok: false as const,
+      error: humanizeEvolutionError(result.error, result.status),
+      status: result.status,
+    };
+  }
+  return { ok: true as const };
 }
 
 export async function getEvolutionConnectionState(instanceName: string) {
@@ -86,7 +170,7 @@ export async function getEvolutionConnectionState(instanceName: string) {
       configured: true,
       state: missing ? "missing" : "error",
       instance: name,
-      error: result.error,
+      error: humanizeEvolutionError(result.error, result.status),
     };
   }
   return {
@@ -99,22 +183,49 @@ export async function getEvolutionConnectionState(instanceName: string) {
 
 export async function startWhatsAppSession(instanceName: string) {
   const name = instanceName.trim();
-  if (!name) {
-    return { ok: false, instanceName: name, qrcode: null, error: "Nombre de instancia inválido" };
-  }
-
-  // 1) Verificar si ya está conectada
-  const live = await getEvolutionConnectionState(name);
-  if (live.state === "open") {
+  if (!name || !isSafeTenantInstance(name)) {
     return {
-      ok: true,
+      ok: false as const,
       instanceName: name,
-      qrcode: null,
-      alreadyConnected: true,
+      qrcode: null as string | null,
+      error: "Nombre de instancia no permitido",
     };
   }
 
-  // 2) Crear instancia si no existe
+  const creds = resolveEvoCreds();
+  if (!creds) {
+    return {
+      ok: false as const,
+      instanceName: name,
+      qrcode: null as string | null,
+      error: "Evolution API no configurada en el servidor (.evolution.local o EVOLUTION_API_KEY)",
+    };
+  }
+
+  // 1) Probar que Evolution responda
+  const probe = await probeEvolutionAdmin();
+  if (!probe.ok) {
+    return {
+      ok: false as const,
+      instanceName: name,
+      qrcode: null as string | null,
+      error: probe.error,
+    };
+  }
+
+  // 2) Verificar si ya está conectada (open)
+  const live = await evoFetch(`/instance/connectionState/${encodeURIComponent(name)}`);
+  if (live.success && extractState(live.data) === "open") {
+    return {
+      ok: true as const,
+      instanceName: name,
+      qrcode: null as string | null,
+      alreadyConnected: true as const,
+    };
+  }
+
+  // 3) Crear la instancia (si no existe)
+  let token: string | null = null;
   const created = await evoFetch("/instance/create", {
     method: "POST",
     body: JSON.stringify({
@@ -125,26 +236,77 @@ export async function startWhatsAppSession(instanceName: string) {
   });
 
   if (created.success) {
+    token = extractInstanceToken(created.data);
     const qrCreate = extractQr(created.data);
     if (qrCreate) {
-      return { ok: true, instanceName: name, qrcode: qrCreate };
+      return { ok: true as const, instanceName: name, qrcode: qrCreate, token };
     }
   }
 
-  // 3) Conectar y solicitar QR
+  const already =
+    created.status === 403 ||
+    created.status === 409 ||
+    /already|exist/i.test(String(created.error || ""));
+
+  if (!created.success && !already) {
+    if (created.status === 401) {
+      return {
+        ok: false as const,
+        instanceName: name,
+        qrcode: null as string | null,
+        error: humanizeEvolutionError(created.error, created.status, { probeOk: true }),
+      };
+    }
+  }
+
+  // 4) Connect -> QR
+  await sleep(400);
   const conn = await evoFetch(`/instance/connect/${encodeURIComponent(name)}`);
   if (conn.success) {
     const qr = extractQr(conn.data);
     if (qr) {
-      return { ok: true, instanceName: name, qrcode: qr };
+      return {
+        ok: true as const,
+        instanceName: name,
+        qrcode: qr,
+        token: token || extractInstanceToken(conn.data),
+      };
     }
   }
 
+  if (created.success || already) {
+    // Si la instancia existe pero connect no devolvió QR directo, reintentar tras breve pausa
+    await sleep(600);
+    const retryConn = await evoFetch(`/instance/connect/${encodeURIComponent(name)}`);
+    if (retryConn.success) {
+      const retryQr = extractQr(retryConn.data);
+      if (retryQr) {
+        return {
+          ok: true as const,
+          instanceName: name,
+          qrcode: retryQr,
+          token: token || extractInstanceToken(retryConn.data),
+        };
+      }
+    }
+
+    return {
+      ok: false as const,
+      instanceName: name,
+      qrcode: null as string | null,
+      error: "Instancia creada en Evolution API pero esperando generación de QR. Pulsa 'Mostrar código QR' nuevamente.",
+    };
+  }
+
   return {
-    ok: false,
+    ok: false as const,
     instanceName: name,
-    qrcode: null,
-    error: created.error || conn.error || "No se pudo generar el código QR",
+    qrcode: null as string | null,
+    error: humanizeEvolutionError(
+      created.error || conn.error || "No se pudo generar el código QR",
+      created.status || conn.status,
+      { probeOk: true }
+    ),
   };
 }
 
@@ -241,7 +403,7 @@ export async function logNotification(params: {
       channel: "whatsapp",
       type: params.type,
       status: params.status,
-      payload: (params.payload ?? undefined) as Prisma.InputJsonValue | undefined,
+      payload: (params.payload ?? undefined) as unknown as Prisma.InputJsonValue | undefined,
       error: params.error,
     },
   });
