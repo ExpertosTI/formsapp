@@ -51,6 +51,15 @@ export async function GET(
   return NextResponse.json(tenant);
 }
 
+function parseJsonSafe<T>(raw: unknown): T | undefined {
+  if (typeof raw !== "string" || !raw.trim()) return undefined;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -97,23 +106,40 @@ export async function PATCH(
     const themeMode = themeModes.includes(themeModeRaw as ThemeMode)
       ? (themeModeRaw as ThemeMode)
       : undefined;
-    const formType = formTypeRaw === "full" || formTypeRaw === "simple" ? formTypeRaw : undefined;
+    const formType =
+      formTypeRaw === "full" || formTypeRaw === "simple" || formTypeRaw === "custom"
+        ? formTypeRaw
+        : undefined;
 
-    const sectionsRaw = String(formData.get("sections") ?? "").trim();
-    let sections: Record<string, boolean> | undefined;
-    if (sectionsRaw) {
-      try {
-        sections = JSON.parse(sectionsRaw);
-      } catch {}
-    }
+    const sections = parseJsonSafe<Record<string, boolean>>(formData.get("sections"));
+    const fields = parseJsonSafe<Record<string, boolean>>(formData.get("fields"));
+    const customLabels = parseJsonSafe<Record<string, string>>(formData.get("customLabels"));
+    const customPlaceholders = parseJsonSafe<Record<string, string>>(formData.get("customPlaceholders"));
+    const customOptions = parseJsonSafe<Record<string, string[]>>(formData.get("customOptions"));
+    const customQuestions = parseJsonSafe<any[]>(formData.get("customQuestions"));
+
+    const notifyOnSubmissionRaw = formData.get("notifyOnSubmission");
+    const notifyOnSubmission =
+      notifyOnSubmissionRaw != null ? String(notifyOnSubmissionRaw) === "1" || String(notifyOnSubmissionRaw) === "true" : undefined;
+    const adminNotifyPhone = String(formData.get("adminNotifyPhone") ?? "").trim();
+
+    const fullSettingsPayload = parseJsonSafe<TenantSettings>(formData.get("fullSettings"));
 
     const prevSettings = (tenant.settings ?? {}) as TenantSettings;
     const settings: TenantSettings = {
       ...prevSettings,
-      introText: introText || undefined,
+      ...(fullSettingsPayload || {}),
+      introText: introText !== undefined ? introText : prevSettings.introText,
       ...(themeMode ? { themeMode } : {}),
       ...(formType ? { formType } : {}),
-      ...(sections ? { sections: { ...(prevSettings.sections ?? {}), ...sections } } : {}),
+      ...(sections !== undefined ? { sections } : {}),
+      ...(fields !== undefined ? { fields } : {}),
+      ...(customLabels !== undefined ? { customLabels } : {}),
+      ...(customPlaceholders !== undefined ? { customPlaceholders } : {}),
+      ...(customOptions !== undefined ? { customOptions } : {}),
+      ...(customQuestions !== undefined ? { customQuestions } : {}),
+      ...(notifyOnSubmission !== undefined ? { notifyOnSubmission } : {}),
+      ...(adminNotifyPhone ? { adminNotifyPhone } : {}),
     };
 
     let logo = tenant.logo;

@@ -30,13 +30,32 @@ export interface FormSection {
 }
 
 export type ThemeMode = "dark" | "light" | "system";
-export type FormType = "simple" | "full";
+export type FormType = "simple" | "full" | "custom";
+
+export interface CustomQuestion {
+  id: string;
+  title: string;
+  label: string;
+  type: "text" | "textarea" | "select" | "yes_no";
+  options?: string[];
+  required?: boolean;
+  placeholder?: string;
+}
 
 export interface TenantSettings {
   formType?: FormType;
   sections?: Record<string, boolean>;
+  fields?: Record<string, boolean>;
+  customLabels?: Record<string, string>;
+  customPlaceholders?: Record<string, string>;
+  customOptions?: Record<string, string[]>;
+  customQuestions?: CustomQuestion[];
   themeMode?: ThemeMode;
   introText?: string;
+  whatsappInstance?: string;
+  whatsappToken?: string;
+  notifyOnSubmission?: boolean;
+  adminNotifyPhone?: string;
 }
 
 export const AREA_OPTS = [
@@ -61,9 +80,9 @@ export const DISPOSICION_CAPACITACION_OPTS = [
   "No",
 ];
 
-const SEXO_OPTS = ["Masculino", "Femenino"];
-const ESTADO_CIVIL_OPTS = ["Soltero/a", "Casado/a", "Unión libre", "Divorciado/a", "Viudo/a"];
-const SI_NO = ["Sí", "No"];
+export const SEXO_OPTS = ["Masculino", "Femenino"];
+export const ESTADO_CIVIL_OPTS = ["Soltero/a", "Casado/a", "Unión libre", "Divorciado/a", "Viudo/a"];
+export const SI_NO = ["Sí", "No"];
 
 export const RUBROS_LABORALES = [
   "Retail / Tiendas",
@@ -82,7 +101,7 @@ export const RUBROS_LABORALES = [
   "Otro",
 ];
 
-const STEP_TITLES: Record<string, string> = {
+export const STEP_TITLES: Record<string, string> = {
   area_aplicar: "Área a la que deseas aplicar",
   modalidad_compensacion: "Modalidad de compensación preferida",
   aporte_empresa: "Tu aporte y compromiso",
@@ -126,155 +145,282 @@ const STEP_TITLES: Record<string, string> = {
   practica_deporte: "Información adicional",
 };
 
-function collectAllFields(settings: TenantSettings | null | undefined): FormField[] {
+export function collectAllFields(settings: TenantSettings | null | undefined): FormField[] {
   const formType = settings?.formType ?? "simple";
-  const on = (key: string, defaultOn = true) =>
+  const onSection = (key: string, defaultOn = true) =>
     settings?.sections?.[key] !== false && (defaultOn || settings?.sections?.[key] === true);
+
+  const onField = (key: string, defaultOn = true) =>
+    settings?.fields?.[key] !== false && (defaultOn || settings?.fields?.[key] === true);
+
+  const getLabel = (key: string, def: string) => settings?.customLabels?.[key] || def;
+  const getPlaceholder = (key: string, def?: string) => settings?.customPlaceholders?.[key] || def;
+  const getOptions = (key: string, def: string[]) => {
+    const custom = settings?.customOptions?.[key];
+    return Array.isArray(custom) && custom.length > 0 ? custom : def;
+  };
 
   const areaField: FormField = {
     key: "area_aplicar",
-    label: "Deseas aplicar para qué área:",
+    label: getLabel("area_aplicar", "Deseas aplicar para qué área:"),
     type: "select",
-    options: AREA_OPTS,
+    options: getOptions("area_aplicar", AREA_OPTS),
     required: true,
   };
 
   const modalCompensacionField: FormField = {
     key: "modalidad_compensacion",
-    label: "¿Qué modalidad de compensación prefieres?",
+    label: getLabel("modalidad_compensacion", "¿Qué modalidad de compensación prefieres?"),
     type: "select",
-    options: MODALIDAD_COMPENSACION_OPTS,
+    options: getOptions("modalidad_compensacion", MODALIDAD_COMPENSACION_OPTS),
     required: true,
   };
 
   const dispCapacitacionField: FormField = {
     key: "disposicion_capacitacion",
-    label: "¿Estás dispuesto/a a capacitarte, cumplir metas y trabajar bajo resultados?",
+    label: getLabel("disposicion_capacitacion", "¿Estás dispuesto/a a capacitarte, cumplir metas y trabajar bajo resultados?"),
     type: "select",
-    options: DISPOSICION_CAPACITACION_OPTS,
+    options: getOptions("disposicion_capacitacion", DISPOSICION_CAPACITACION_OPTS),
     required: true,
   };
 
   const aporteEmpresaField: FormField = {
     key: "aporte_empresa",
-    label:
-      "Si te diéramos la oportunidad de formar parte de nuestra empresa, ¿qué estarías dispuesto/a a aportar para crecer, alcanzar tus metas y contribuir al éxito del equipo?",
+    label: getLabel(
+      "aporte_empresa",
+      "Si te diéramos la oportunidad de formar parte de nuestra empresa, ¿qué estarías dispuesto/a a aportar para crecer, alcanzar tus metas y contribuir al éxito del equipo?"
+    ),
     type: "textarea",
-    placeholder: "Escribe tu respuesta aquí...",
+    placeholder: getPlaceholder("aporte_empresa", "Escribe tu respuesta aquí..."),
     required: true,
   };
 
-  if (formType === "simple") {
-    const simpleFields: FormField[] = [
-      areaField,
-      { key: "nombre", label: "Nombre", type: "text", required: true },
-      { key: "apellido", label: "Apellido", type: "text", required: true },
-      { key: "cedula", label: "Cédula", type: "text", required: true, placeholder: "402-1234567-8" },
-      { key: "celular", label: "Celular", type: "tel", required: true, placeholder: "(809) 555-1234" },
-      { key: "correo", label: "Correo electrónico", type: "email", required: true },
-      { key: "location", label: "Ubicación", type: "location", required: true },
-      { key: "oficio_profesion", label: "Oficio / Profesión", type: "select", options: PROFESIONES, required: true },
-      { key: "sueldo_aspirado", label: "Sueldo aspirado (RD$)", type: "text", required: true, placeholder: "Ej. 25,000" },
-    ];
+  const fields: FormField[] = [];
 
-    if (on("modalidad_compensacion", true)) simpleFields.push(modalCompensacionField);
-    if (on("disposicion_capacitacion", true)) simpleFields.push(dispCapacitacionField);
-    if (on("aporte_empresa", true)) simpleFields.push(aporteEmpresaField);
-
-    simpleFields.push(
-      { key: "curriculum", label: "Curriculum vitae", type: "file", accept: ".pdf,.doc,.docx", required: true },
-      { key: "foto", label: "Foto reciente", type: "file", accept: "image/jpeg,image/png,image/webp", required: true }
-    );
-
-    return simpleFields;
+  // Área / Vacante a aplicar (configurable)
+  if (onSection("area_aplicar", true)) {
+    fields.push(areaField);
   }
 
-  const fields: FormField[] = [
-    areaField,
-    { key: "nombre", label: "Nombre", type: "text", required: true },
-    { key: "apellido", label: "Apellido", type: "text", required: true },
-    { key: "cedula", label: "Cédula", type: "text", required: true, placeholder: "402-1234567-8" },
-    { key: "fecha_nacimiento", label: "Fecha de nacimiento", type: "date", required: true },
-    { key: "lugar_nacimiento", label: "Lugar de nacimiento", type: "text", required: true },
-    { key: "nacionalidad", label: "Nacionalidad", type: "text", required: true, placeholder: "Dominicana" },
-    { key: "sexo", label: "Sexo", type: "select", options: SEXO_OPTS, required: true },
-    { key: "estado_civil", label: "Estado civil", type: "select", options: ESTADO_CIVIL_OPTS, required: true },
-    { key: "location", label: "Ubicación", type: "location", required: true },
-    { key: "celular", label: "Celular", type: "tel", required: true, placeholder: "(809) 555-1234" },
-    { key: "correo", label: "Correo electrónico", type: "email", required: true },
-    { key: "tel_casa", label: "Teléfono de casa", type: "tel", placeholder: "555-1234" },
-    { key: "oficio_profesion", label: "Oficio / Profesión", type: "select", options: PROFESIONES, required: true },
-    { key: "sueldo_aspirado", label: "Sueldo aspirado (RD$)", type: "text", required: true, placeholder: "Ej. 25,000" },
-    {
-      key: "rubros_laborales",
-      label: "Rubros laborales",
-      type: "multiselect",
-      options: RUBROS_LABORALES,
-      required: true,
-    },
-    { key: "habilidades", label: "Habilidades", type: "textarea", placeholder: "Ej. Excel, inglés, manejo de caja…" },
-    { key: "red_profesional", label: "Red profesional (opcional)", type: "url", placeholder: "https://…" },
-  ];
+  // Datos personales básicos
+  if (onSection("datos_personales", true)) {
+    fields.push(
+      { key: "nombre", label: getLabel("nombre", "Nombre"), type: "text", required: true, placeholder: getPlaceholder("nombre", "Ej. Juan") },
+      { key: "apellido", label: getLabel("apellido", "Apellido"), type: "text", required: true, placeholder: getPlaceholder("apellido", "Ej. Pérez") }
+    );
+    if (onField("cedula", true)) {
+      fields.push({ key: "cedula", label: getLabel("cedula", "Cédula"), type: "text", required: true, placeholder: getPlaceholder("cedula", "402-1234567-8") });
+    }
+    if (formType !== "simple") {
+      if (onField("fecha_nacimiento", true)) {
+        fields.push({ key: "fecha_nacimiento", label: getLabel("fecha_nacimiento", "Fecha de nacimiento"), type: "date", required: true });
+      }
+      if (onField("lugar_nacimiento", true)) {
+        fields.push({ key: "lugar_nacimiento", label: getLabel("lugar_nacimiento", "Lugar de nacimiento"), type: "text", required: true });
+      }
+      if (onField("nacionalidad", true)) {
+        fields.push({ key: "nacionalidad", label: getLabel("nacionalidad", "Nacionalidad"), type: "text", required: true, placeholder: getPlaceholder("nacionalidad", "Dominicana") });
+      }
+      if (onField("sexo", true)) {
+        fields.push({ key: "sexo", label: getLabel("sexo", "Sexo"), type: "select", options: getOptions("sexo", SEXO_OPTS), required: true });
+      }
+      if (onField("estado_civil", true)) {
+        fields.push({ key: "estado_civil", label: getLabel("estado_civil", "Estado civil"), type: "select", options: getOptions("estado_civil", ESTADO_CIVIL_OPTS), required: true });
+      }
+    }
+  }
 
-  if (on("modalidad_compensacion", true)) fields.push(modalCompensacionField);
-  if (on("disposicion_capacitacion", true)) fields.push(dispCapacitacionField);
-  if (on("aporte_empresa", true)) fields.push(aporteEmpresaField);
+  // Contacto
+  if (onSection("contacto", true)) {
+    fields.push(
+      { key: "celular", label: getLabel("celular", "Celular"), type: "tel", required: true, placeholder: getPlaceholder("celular", "(809) 555-1234") },
+      { key: "correo", label: getLabel("correo", "Correo electrónico"), type: "email", required: true, placeholder: getPlaceholder("correo", "tu@correo.com") }
+    );
+    if (formType !== "simple" && onField("tel_casa", true)) {
+      fields.push({ key: "tel_casa", label: getLabel("tel_casa", "Teléfono de casa"), type: "tel", placeholder: getPlaceholder("tel_casa", "555-1234") });
+    }
+  }
 
-  if (on("experiencia_laboral", true)) {
+  // Ubicación
+  if (onSection("ubicacion", true)) {
+    fields.push({ key: "location", label: getLabel("location", "Ubicación"), type: "location", required: true });
+  }
+
+  // Perfil profesional
+  if (onSection("perfil_profesional", true)) {
+    if (onField("oficio_profesion", true)) {
+      fields.push({
+        key: "oficio_profesion",
+        label: getLabel("oficio_profesion", "Oficio / Profesión"),
+        type: "select",
+        options: getOptions("oficio_profesion", PROFESIONES),
+        required: true,
+      });
+    }
+    if (onField("sueldo_aspirado", true)) {
+      fields.push({
+        key: "sueldo_aspirado",
+        label: getLabel("sueldo_aspirado", "Sueldo aspirado (RD$)"),
+        type: "text",
+        required: true,
+        placeholder: getPlaceholder("sueldo_aspirado", "Ej. 25,000"),
+      });
+    }
+    if (formType !== "simple") {
+      if (onField("rubros_laborales", true)) {
+        fields.push({
+          key: "rubros_laborales",
+          label: getLabel("rubros_laborales", "Rubros laborales"),
+          type: "multiselect",
+          options: getOptions("rubros_laborales", RUBROS_LABORALES),
+          required: true,
+        });
+      }
+      if (onField("habilidades", true)) {
+        fields.push({
+          key: "habilidades",
+          label: getLabel("habilidades", "Habilidades"),
+          type: "textarea",
+          placeholder: getPlaceholder("habilidades", "Ej. Excel, inglés, manejo de caja…"),
+        });
+      }
+      if (onField("red_profesional", false)) {
+        fields.push({
+          key: "red_profesional",
+          label: getLabel("red_profesional", "Red profesional (opcional)"),
+          type: "url",
+          placeholder: getPlaceholder("red_profesional", "https://…"),
+        });
+      }
+    }
+  }
+
+  // Preguntas de expectativas y compromiso
+  if (onSection("modalidad_compensacion", true)) fields.push(modalCompensacionField);
+  if (onSection("disposicion_capacitacion", true)) fields.push(dispCapacitacionField);
+  if (onSection("aporte_empresa", true)) fields.push(aporteEmpresaField);
+
+  // Experiencia laboral
+  if (formType !== "simple" && onSection("experiencia_laboral", true)) {
     fields.push(
       {
         key: "experiencia",
-        label: "Experiencia laboral",
+        label: getLabel("experiencia", "Experiencia laboral"),
         type: "work_experience",
         required: true,
       },
-      { key: "trabajando_actualmente", label: "¿Trabaja actualmente?", type: "select", options: SI_NO, required: true },
-      { key: "razon_dejar_empleo", label: "Motivo de salida del empleo anterior", type: "textarea" },
-      { key: "tiempo_disponible", label: "Disponibilidad para empezar", type: "select", options: DISPONIBILIDAD, required: true }
+      {
+        key: "trabajando_actualmente",
+        label: getLabel("trabajando_actualmente", "¿Trabaja actualmente?"),
+        type: "select",
+        options: SI_NO,
+        required: true,
+      },
+      {
+        key: "razon_dejar_empleo",
+        label: getLabel("razon_dejar_empleo", "Motivo de salida del empleo anterior"),
+        type: "textarea",
+        placeholder: getPlaceholder("razon_dejar_empleo", "Escribe el motivo…"),
+      },
+      {
+        key: "tiempo_disponible",
+        label: getLabel("tiempo_disponible", "Disponibilidad para empezar"),
+        type: "select",
+        options: getOptions("tiempo_disponible", DISPONIBILIDAD),
+        required: true,
+      }
     );
   }
 
-  if (on("preparacion_academica", true)) {
+  // Preparación académica
+  if (formType !== "simple" && onSection("preparacion_academica", true)) {
     fields.push(
-      { key: "primaria", label: "Primaria", type: "text" },
-      { key: "secundaria", label: "Secundaria", type: "text" },
-      { key: "universitaria", label: "Universitaria", type: "text" },
-      { key: "especialidad", label: "Especialidad / Carrera", type: "text" },
-      { key: "estudia_actualmente", label: "¿Estudia actualmente?", type: "select", options: SI_NO },
-      { key: "dia_clases", label: "Días de clases", type: "multiselect", options: DIAS_SEMANA }
+      { key: "primaria", label: getLabel("primaria", "Primaria"), type: "text" },
+      { key: "secundaria", label: getLabel("secundaria", "Secundaria"), type: "text" },
+      { key: "universitaria", label: getLabel("universitaria", "Universitaria"), type: "text" },
+      { key: "especialidad", label: getLabel("especialidad", "Especialidad / Carrera"), type: "text" },
+      { key: "estudia_actualmente", label: getLabel("estudia_actualmente", "¿Estudia actualmente?"), type: "select", options: SI_NO },
+      { key: "dia_clases", label: getLabel("dia_clases", "Días de clases"), type: "multiselect", options: DIAS_SEMANA }
     );
   }
 
-  if (on("datos_familiares", false)) {
+  // Referencias familiares
+  if (formType !== "simple" && onSection("datos_familiares", false)) {
     fields.push(
-      { key: "familiares", label: "Familiares (nombre, parentesco, ocupación)", type: "textarea" },
-      { key: "familiar_empresa", label: "¿Familiar en la empresa?", type: "select", options: SI_NO },
-      { key: "recomendado", label: "¿Recomendado por alguien?", type: "select", options: SI_NO }
+      { key: "familiares", label: getLabel("familiares", "Familiares (nombre, parentesco, ocupación)"), type: "textarea" },
+      { key: "familiar_empresa", label: getLabel("familiar_empresa", "¿Familiar en la empresa?"), type: "select", options: SI_NO },
+      { key: "recomendado", label: getLabel("recomendado", "¿Recomendado por alguien?"), type: "select", options: SI_NO }
     );
   }
 
-  if (on("documentos", true)) {
+  // Documentos
+  if (onSection("documentos", true)) {
+    if (onField("curriculum", true)) {
+      fields.push({
+        key: "curriculum",
+        label: getLabel("curriculum", "Curriculum vitae"),
+        type: "file",
+        accept: ".pdf,.doc,.docx",
+        required: true,
+      });
+    }
+    if (onField("foto", true)) {
+      fields.push({
+        key: "foto",
+        label: getLabel("foto", "Foto reciente"),
+        type: "file",
+        accept: "image/jpeg,image/png,image/webp",
+        required: true,
+      });
+    }
+  }
+
+  // Información adicional
+  if (formType !== "simple" && onSection("informacion_adicional", true)) {
     fields.push(
-      { key: "curriculum", label: "Curriculum vitae", type: "file", accept: ".pdf,.doc,.docx", required: true },
-      { key: "foto", label: "Foto reciente", type: "file", accept: "image/jpeg,image/png,image/webp", required: true }
+      { key: "licencia_conducir", label: getLabel("licencia_conducir", "¿Licencia de conducir?"), type: "select", options: SI_NO },
+      { key: "vehiculo", label: getLabel("vehiculo", "¿Vehículo propio?"), type: "select", options: SI_NO },
+      { key: "enfermedad", label: getLabel("enfermedad", "¿Padece alguna enfermedad?"), type: "select", options: SI_NO },
+      { key: "cual_enfermedad", label: getLabel("cual_enfermedad", "¿Cuál enfermedad?"), type: "text" },
+      { key: "practica_deporte", label: getLabel("practica_deporte", "¿Practica deporte?"), type: "select", options: SI_NO }
     );
   }
 
-  fields.push(
-    { key: "licencia_conducir", label: "¿Licencia de conducir?", type: "select", options: SI_NO },
-    { key: "vehiculo", label: "¿Vehículo propio?", type: "select", options: SI_NO },
-    { key: "enfermedad", label: "¿Padece alguna enfermedad?", type: "select", options: SI_NO },
-    { key: "cual_enfermedad", label: "¿Cuál enfermedad?", type: "text" },
-    { key: "practica_deporte", label: "¿Practica deporte?", type: "select", options: SI_NO }
-  );
+  // Preguntas personalizadas creadas por la empresa
+  if (Array.isArray(settings?.customQuestions) && settings.customQuestions.length > 0) {
+    for (const q of settings.customQuestions) {
+      if (!q.id || !q.label) continue;
+      const fieldType: FormFieldType =
+        q.type === "textarea" ? "textarea" : q.type === "select" || q.type === "yes_no" ? "select" : "text";
+
+      const opts = q.type === "yes_no" ? SI_NO : q.options && q.options.length ? q.options : ["Opción 1", "Opción 2"];
+
+      fields.push({
+        key: `custom_${q.id}`,
+        label: q.label,
+        type: fieldType,
+        options: fieldType === "select" ? opts : undefined,
+        required: q.required !== false,
+        placeholder: q.placeholder,
+      });
+    }
+  }
 
   return fields;
 }
 
-//** Divide todos los campos en pasos cortos (máx. 2 por pantalla) */
-function chunkIntoWizardSteps(fields: FormField[], maxPerStep = 2): FormSection[] {
+/** Divide todos los campos en pasos cortos (máx. 2 por pantalla) */
+function chunkIntoWizardSteps(fields: FormField[], maxPerStep = 2, settings?: TenantSettings | null): FormSection[] {
   const sections: FormSection[] = [];
   let buffer: FormField[] = [];
+
+  const getStepTitle = (field: FormField) => {
+    return (
+      settings?.customLabels?.[`${field.key}_title`] ??
+      STEP_TITLES[field.key] ??
+      field.label
+    );
+  };
 
   for (const field of fields) {
     if (
@@ -283,15 +429,16 @@ function chunkIntoWizardSteps(fields: FormField[], maxPerStep = 2): FormSection[
       field.key === "area_aplicar" ||
       field.key === "modalidad_compensacion" ||
       field.key === "disposicion_capacitacion" ||
-      field.key === "aporte_empresa"
+      field.key === "aporte_empresa" ||
+      field.key.startsWith("custom_")
     ) {
       if (buffer.length) {
-        sections.push(makeStep(buffer, sections.length));
+        sections.push(makeStep(buffer, sections.length, settings));
         buffer = [];
       }
       sections.push({
         id: `step_${field.key}`,
-        title: STEP_TITLES[field.key] ?? field.label,
+        title: getStepTitle(field),
         fields: [field],
       });
       continue;
@@ -299,29 +446,33 @@ function chunkIntoWizardSteps(fields: FormField[], maxPerStep = 2): FormSection[
 
     buffer.push(field);
     if (buffer.length >= maxPerStep) {
-      sections.push(makeStep(buffer, sections.length));
+      sections.push(makeStep(buffer, sections.length, settings));
       buffer = [];
     }
   }
 
-  if (buffer.length) sections.push(makeStep(buffer, sections.length));
+  if (buffer.length) sections.push(makeStep(buffer, sections.length, settings));
   return sections;
 }
 
-function makeStep(fields: FormField[], index: number): FormSection {
-  const title = STEP_TITLES[fields[0].key] ?? fields[0].label;
+function makeStep(fields: FormField[], index: number, settings?: TenantSettings | null): FormSection {
+  const first = fields[0];
+  const title =
+    settings?.customLabels?.[`${first.key}_title`] ??
+    STEP_TITLES[first.key] ??
+    first.label;
+
   return {
-    id: `step_${index}_${fields[0].key}`,
+    id: `step_${index}_${first.key}`,
     title,
     fields,
   };
 }
 
 export function buildFormSections(settings: TenantSettings | null | undefined): FormSection[] {
-  return chunkIntoWizardSteps(collectAllFields(settings), 2);
+  return chunkIntoWizardSteps(collectAllFields(settings), 2, settings);
 }
 
 /** @deprecated use rubros_laborales */
 export const SECTORES_EXPERIENCIA = RUBROS_LABORALES;
 export const PROVINCIAS_RD: string[] = [];
-

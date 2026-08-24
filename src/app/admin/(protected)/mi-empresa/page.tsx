@@ -20,7 +20,7 @@ export default async function MiEmpresaPage() {
   if (!tenant) redirect("/admin/login");
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <header className="tl-page-header">
         <h1 className="tl-page-title">Mi empresa</h1>
         <p className="tl-page-sub">

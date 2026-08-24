@@ -25,7 +25,7 @@ export default async function EmpresaEditPage({ params }: Props) {
   if (!tenant) notFound();
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <Link
         href="/admin/empresas"
         className="inline-flex items-center gap-1.5 mb-4 text-xs font-medium text-slate-400 hover:text-white transition-colors"

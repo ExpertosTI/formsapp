@@ -272,14 +272,19 @@ export function groupFields(data: SubmissionData) {
     },
   ];
 
-  return groups
+  const knownKeys = new Set(groups.flatMap((g) => g.keys));
+  const otherKeys = Object.keys(data).filter(
+    (k) => !k.startsWith("_") && !knownKeys.has(k) && data[k] != null && String(data[k]).trim() !== ""
+  );
+
+  const mapped = groups
     .map((group) => ({
       title: group.title,
       fields: group.keys
         .filter((key) => !key.startsWith("_") && data[key] != null && String(data[key]).trim() !== "")
         .map((key) => ({
           key,
-          label: FIELD_LABELS[key] ?? key.replace(/_/g, " "),
+          label: FIELD_LABELS[key] ?? key.replace(/^custom_/, "").replace(/_/g, " "),
           value:
             key === "experiencia"
               ? formatWorkExperienceDisplay(String(data[key])) || String(data[key])
@@ -287,4 +292,17 @@ export function groupFields(data: SubmissionData) {
         })),
     }))
     .filter((group) => group.fields.length > 0);
+
+  if (otherKeys.length > 0) {
+    mapped.push({
+      title: "Preguntas adicionales",
+      fields: otherKeys.map((key) => ({
+        key,
+        label: FIELD_LABELS[key] ?? key.replace(/^custom_/, "").replace(/_/g, " "),
+        value: String(data[key]),
+      })),
+    });
+  }
+
+  return mapped;
 }

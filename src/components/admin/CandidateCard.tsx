@@ -15,6 +15,7 @@ import { computeCandidateScore, parseScoring, getScoreColor } from "@/lib/scorin
 import { CandidateAvatar } from "@/components/admin/CandidateAvatar";
 import { FileThumbnails } from "@/components/admin/FileThumbnails";
 import { FavoriteButton } from "@/components/admin/FavoriteButton";
+import { CandidateQuickActions } from "@/components/admin/CandidateQuickActions";
 
 interface Props {
   id: string;
@@ -102,11 +103,22 @@ export function CandidateCard({
               )}
             </div>
 
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-between mt-2 pt-1 border-t border-white/5">
               <FileThumbnails files={fileMap} tenantSlug={tenantSlug} />
-              <span className="text-[10px] text-slate-600">
-                {createdAt.toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}
-              </span>
+              <div className="flex items-center gap-2">
+                {String(fields.celular ?? "") && (
+                  <CandidateQuickActions
+                    candidateName={name}
+                    phone={String(fields.celular ?? "")}
+                    tenantName={tenantName}
+                    appliedRole={headline}
+                    tenantSlug={tenantSlug}
+                  />
+                )}
+                <span className="text-[10px] text-slate-600">
+                  {createdAt.toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              </div>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { buildFormSections, type TenantSettings } from "@/lib/form-config";
 import { computeCandidateScore, type FormTelemetry } from "@/lib/scoring";
+import { sendWhatsAppMessage } from "@/lib/notifications/whatsapp";
 
 const UPLOADS = path.join(process.cwd(), "public", "uploads");
 
@@ -57,10 +58,10 @@ export async function POST(req: NextRequest) {
           for (const key of ["provincia", "ciudad", "sector", "direccion"]) {
             const val = formData.get(key);
             const s = val != null ? String(val).trim() : "";
-            if (!s) {
+            if (!s && field.required) {
               return NextResponse.json({ error: `Completa tu ubicación (${key})` }, { status: 400 });
             }
-            datos[key] = s;
+            if (s) datos[key] = s;
           }
           continue;
         }
@@ -98,6 +99,18 @@ export async function POST(req: NextRequest) {
         status: "nuevo",
       },
     });
+
+    // Enviar notificación por WhatsApp al admin si está configurado
+    if (settings.notifyOnSubmission && settings.adminNotifyPhone) {
+      const candidateName = [datos.nombre, datos.apellido].filter(Boolean).join(" ") || "Postulante";
+      const area = datos.area_aplicar || datos.oficio_profesion || "General";
+      const phone = datos.celular || "Sin teléfono";
+      const msg = `🔔 *Nueva solicitud de empleo recibida*\n\n🏢 *Empresa:* ${tenant.name}\n👤 *Candidato:* ${candidateName}\n💼 *Área/Puesto:* ${area}\n📱 *Teléfono:* ${phone}\n\nIngresa al panel de TalentoLink para ver el perfil completo y su CV.`;
+
+      sendWhatsAppMessage(settings.adminNotifyPhone, msg, settings.whatsappInstance).catch((err) => {
+        console.error("Error enviando alerta whatsapp al admin:", err);
+      });
+    }
 
     return NextResponse.json({ ok: true, id, score: scoring.overall });
   } catch (e) {
