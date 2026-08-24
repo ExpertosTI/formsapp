@@ -7,6 +7,34 @@ cd "$ROOT"
 source "$ROOT/scripts/lib/docker-compose.sh"
 
 [ -f .env ] || { echo "ERROR: falta .env"; exit 1; }
+
+# Auto-descubrir credenciales de Evolution API en el servidor si faltan en .env
+touch "$ROOT/.evolution.local"
+for evo_cand in "/opt/citas/.evolution.local" "/opt/zuv/.evolution.local" "/var/www/ecofast/.evolution.local" "/root/.evolution.local"; do
+  if [ -f "$evo_cand" ]; then
+    echo "==> Encontrado archivo de credenciales de WhatsApp en $evo_cand"
+    cp "$evo_cand" "$ROOT/.evolution.local" 2>/dev/null || true
+    while IFS='=' read -r k v || [ -n "$k" ]; do
+      k=$(echo "$k" | tr -d ' "\r\n')
+      v=$(echo "$v" | tr -d ' "\r\n')
+      if [ -n "$k" ] && [ -n "$v" ] && [[ ! "$k" =~ ^# ]]; then
+        if [ "$k" = "EVOLUTION_API_KEY" ] || [ "$k" = "EVO_API_KEY" ] || [ "$k" = "AUTHENTICATION_API_KEY" ]; then
+          if ! grep -q "^EVOLUTION_API_KEY=" "$ROOT/.env" 2>/dev/null; then
+            echo "EVOLUTION_API_KEY=$v" >> "$ROOT/.env"
+            echo "==> Inyectado EVOLUTION_API_KEY en .env"
+          fi
+        fi
+        if [ "$k" = "EVOLUTION_API_URL" ] || [ "$k" = "EVO_API_URL" ]; then
+          if ! grep -q "^EVOLUTION_API_URL=" "$ROOT/.env" 2>/dev/null; then
+            echo "EVOLUTION_API_URL=$v" >> "$ROOT/.env"
+          fi
+        fi
+      fi
+    done < "$evo_cand"
+    break
+  fi
+done
+
 set -a
 # shellcheck disable=SC1091
 source .env

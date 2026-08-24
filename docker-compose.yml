@@ -29,6 +29,7 @@ services:
     volumes:
       - renace-forms_uploads:/app/public/uploads
       - /var/www/ecofast/tenants:/var/www/ecofast/tenants:ro
+      - ./.evolution.local:/app/.evolution.local:ro
     logging:
       driver: "json-file"
       options:
