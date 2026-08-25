@@ -35,6 +35,20 @@ for evo_cand in "/opt/citas/.evolution.local" "/opt/zuv/.evolution.local" "/var/
   fi
 done
 
+# Fallback si no había archivo en el host:
+if ! grep -q "^EVOLUTION_API_KEY=" "$ROOT/.env" 2>/dev/null; then
+  echo "EVOLUTION_API_URL=https://evoapi.renace.tech" >> "$ROOT/.env"
+  echo "EVOLUTION_API_KEY=d66888ea1d791329a97c934ea14014dc41c53e001440f74a" >> "$ROOT/.env"
+  echo "==> Inyectado EVOLUTION_API_KEY por defecto en .env"
+fi
+
+if [ ! -s "$ROOT/.evolution.local" ]; then
+  cat << 'EOF' > "$ROOT/.evolution.local"
+EVOLUTION_API_URL=https://evoapi.renace.tech
+EVOLUTION_API_KEY=d66888ea1d791329a97c934ea14014dc41c53e001440f74a
+EOF
+fi
+
 set -a
 # shellcheck disable=SC1091
 source .env
