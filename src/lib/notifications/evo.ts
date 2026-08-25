@@ -11,6 +11,7 @@ export interface EvoCreds {
 }
 
 const DEFAULT_API_URL = "https://evoapi.renace.tech";
+const DEFAULT_API_KEY = "d66888ea1d791329a97c934ea14014dc41c53e001440f74a";
 
 function env(name: string, fallback = ""): string {
   const raw = process.env[name] ?? fallback;
@@ -109,6 +110,12 @@ export function resolveEvoCreds(): EvoCreds | null {
     }
   }
 
+  // Fallback predeterminado a las credenciales globales del servidor
+  if (isPlausibleKey(DEFAULT_API_KEY)) {
+    cachedCreds = { url: DEFAULT_API_URL, key: DEFAULT_API_KEY, source: "default" };
+    return cachedCreds;
+  }
+
   return null;
 }
 
@@ -117,7 +124,7 @@ export function evolutionApiUrl(): string {
 }
 
 export function evolutionApiKey(): string {
-  return resolveEvoCreds()?.key || "";
+  return resolveEvoCreds()?.key || DEFAULT_API_KEY;
 }
 
 export function whatsappConfigured(): boolean {
