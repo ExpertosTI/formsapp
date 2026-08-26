@@ -11,12 +11,14 @@ import {
   Palette,
   SlidersHorizontal,
   Smartphone,
+  Briefcase,
 } from "lucide-react";
 import Link from "next/link";
 import { TenantBrandLogo } from "@/components/forms/TenantBrandLogo";
 import type { TenantSettings, ThemeMode } from "@/lib/form-config";
 import { FormSectionEditor } from "./FormSectionEditor";
 import { WhatsAppQrCard } from "./WhatsAppQrCard";
+import { JobPositionsManager } from "./JobPositionsManager";
 
 export interface TenantBrandingInitial {
   slug: string;
@@ -33,13 +35,13 @@ interface Props {
   tenant: TenantBrandingInitial;
 }
 
-type ActiveTab = "branding" | "sections" | "whatsapp";
+type ActiveTab = "positions" | "sections" | "whatsapp" | "branding";
 
 export function TenantBrandingForm({ tenant }: Props) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>("sections");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("positions");
   const [settings, setSettings] = useState<TenantSettings>(tenant.settings ?? {});
 
   const [name, setName] = useState(tenant.name);
@@ -120,6 +122,7 @@ export function TenantBrandingForm({ tenant }: Props) {
     fd.set("customPlaceholders", JSON.stringify(mergedSettings.customPlaceholders ?? {}));
     fd.set("customOptions", JSON.stringify(mergedSettings.customOptions ?? {}));
     fd.set("customQuestions", JSON.stringify(mergedSettings.customQuestions ?? []));
+    fd.set("jobPositions", JSON.stringify(mergedSettings.jobPositions ?? []));
     fd.set("notifyOnSubmission", mergedSettings.notifyOnSubmission ? "1" : "0");
     if (mergedSettings.adminNotifyPhone) {
       fd.set("adminNotifyPhone", mergedSettings.adminNotifyPhone);
@@ -154,11 +157,24 @@ export function TenantBrandingForm({ tenant }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Navegación por pestañas */}
-      <div className="flex p-1 gap-1 rounded-2xl bg-white/[0.03] border border-white/10">
+      <div className="grid grid-cols-2 sm:grid-cols-4 p-1 gap-1 rounded-2xl bg-white/[0.03] border border-white/10">
+        <button
+          type="button"
+          onClick={() => setActiveTab("positions")}
+          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+            activeTab === "positions"
+              ? "bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20"
+              : "text-slate-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <Briefcase className="w-3.5 h-3.5" />
+          Puestos y Vacantes
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab("sections")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
             activeTab === "sections"
               ? "bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20"
               : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -171,7 +187,7 @@ export function TenantBrandingForm({ tenant }: Props) {
         <button
           type="button"
           onClick={() => setActiveTab("whatsapp")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
             activeTab === "whatsapp"
               ? "bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20"
               : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -184,7 +200,7 @@ export function TenantBrandingForm({ tenant }: Props) {
         <button
           type="button"
           onClick={() => setActiveTab("branding")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
             activeTab === "branding"
               ? "bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20"
               : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -195,12 +211,17 @@ export function TenantBrandingForm({ tenant }: Props) {
         </button>
       </div>
 
-      {/* PESTAÑA 1: PREGUNTAS Y SECCIONES */}
+      {/* PESTAÑA 1: PUESTOS Y VACANTES ABIERTAS */}
+      {activeTab === "positions" && (
+        <JobPositionsManager settings={settings} onChange={setSettings} />
+      )}
+
+      {/* PESTAÑA 2: PREGUNTAS Y SECCIONES */}
       {activeTab === "sections" && (
         <FormSectionEditor settings={settings} onChange={setSettings} />
       )}
 
-      {/* PESTAÑA 2: WHATSAPP Y NOTIFICACIONES */}
+      {/* PESTAÑA 3: WHATSAPP Y NOTIFICACIONES */}
       {activeTab === "whatsapp" && (
         <WhatsAppQrCard
           tenantSlug={tenant.slug}
@@ -210,7 +231,7 @@ export function TenantBrandingForm({ tenant }: Props) {
         />
       )}
 
-      {/* PESTAÑA 3: MARCA Y DISEÑO */}
+      {/* PESTAÑA 4: MARCA Y DISEÑO */}
       {activeTab === "branding" && (
         <div className="space-y-6 animate-tl-fade-in">
           <section className="p-5 sm:p-6 tl-card">

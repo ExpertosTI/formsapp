@@ -29,6 +29,7 @@ interface Props {
   slug: string;
   tenantName: string;
   sections: FormSection[];
+  initialValues?: Record<string, string>;
   theme: TenantTheme;
   colorMode: FormColorMode;
 }
@@ -40,7 +41,14 @@ const EMPTY_LOCATION: RdLocationValues = {
   direccion: "",
 };
 
-export function TenantApplicationForm({ slug, tenantName, sections, theme, colorMode }: Props) {
+export function TenantApplicationForm({
+  slug,
+  tenantName,
+  sections,
+  initialValues,
+  theme,
+  colorMode,
+}: Props) {
   const router = useRouter();
   const [draftReady, setDraftReady] = useState(false);
 
@@ -49,7 +57,7 @@ export function TenantApplicationForm({ slug, tenantName, sections, theme, color
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const [multiValues, setMultiValues] = useState<Record<string, string[]>>({});
-  const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [formValues, setFormValues] = useState<Record<string, string>>(initialValues || {});
   const [fileValues, setFileValues] = useState<Record<string, File>>({});
   const [fileMeta, setFileMeta] = useState<Record<string, { name: string; size: number }>>({});
   const [locationValues, setLocationValues] = useState<RdLocationValues>(EMPTY_LOCATION);

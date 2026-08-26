@@ -26,6 +26,7 @@ export default async function TenantForm({ params }: Props) {
       tenantName={tenant.name}
       logo={tenant.logo}
       sections={sections}
+      jobPositions={settings.jobPositions}
       theme={{ primary, accent, bg }}
       themeMode={settings.themeMode ?? "system"}
       introText={settings.introText}

@@ -117,6 +117,7 @@ export async function PATCH(
     const customPlaceholders = parseJsonSafe<Record<string, string>>(formData.get("customPlaceholders"));
     const customOptions = parseJsonSafe<Record<string, string[]>>(formData.get("customOptions"));
     const customQuestions = parseJsonSafe<any[]>(formData.get("customQuestions"));
+    const jobPositions = parseJsonSafe<any[]>(formData.get("jobPositions"));
 
     const notifyOnSubmissionRaw = formData.get("notifyOnSubmission");
     const notifyOnSubmission =
@@ -138,6 +139,7 @@ export async function PATCH(
       ...(customPlaceholders !== undefined ? { customPlaceholders } : {}),
       ...(customOptions !== undefined ? { customOptions } : {}),
       ...(customQuestions !== undefined ? { customQuestions } : {}),
+      ...(jobPositions !== undefined ? { jobPositions } : {}),
       ...(notifyOnSubmission !== undefined ? { notifyOnSubmission } : {}),
       ...(adminNotifyPhone ? { adminNotifyPhone } : {}),
     };
