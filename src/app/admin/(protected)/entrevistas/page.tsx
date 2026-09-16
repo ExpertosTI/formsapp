@@ -44,7 +44,7 @@ export default async function EntrevistasPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-8">
+    <div className="w-full max-w-7xl mx-auto space-y-8">
       <header className="tl-page-header">
         <h1 className="tl-page-title">Entrevistas</h1>
         <p className="tl-page-sub">
@@ -55,10 +55,12 @@ export default async function EntrevistasPage({ searchParams }: Props) {
       </header>
 
       {tenant ? (
-        <>
-          <InterviewSlotForm tenantSlug={tenant.slug} empresaOptions={tenants} />
-          <section>
-            <h2 className="mb-3 text-sm font-bold text-white">Cupos programados</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-5">
+            <InterviewSlotForm tenantSlug={tenant.slug} empresaOptions={tenants} />
+          </div>
+          <section className="lg:col-span-7 space-y-4">
+            <h2 className="text-sm font-bold text-white">Cupos programados</h2>
             <InterviewSlotList
               slots={slots.map((s) => ({
                 id: s.id,
@@ -72,7 +74,7 @@ export default async function EntrevistasPage({ searchParams }: Props) {
               }))}
             />
           </section>
-        </>
+        </div>
       ) : (
         <div className="p-8 text-center tl-card">
           <p className="text-slate-400">Registra una empresa primero.</p>

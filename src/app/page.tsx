@@ -20,6 +20,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { TalentoLinkLogo } from "@/components/brand/TalentoLinkLogo";
+import { HomeDownloadsSection, HeroInstallButton } from "@/components/brand/HomeDownloadsSection";
 
 export default function Home() {
   return (
@@ -69,13 +70,7 @@ export default function Home() {
 
         {/* CTAs de Acceso Rápido */}
         <div className="flex flex-col items-center justify-center gap-3.5 mt-8 sm:flex-row animate-tl-fade-in">
-          <a
-            href="#descargas"
-            className="w-full sm:w-auto tl-btn-primary px-8 py-3.5 text-sm font-bold justify-center"
-          >
-            <Download className="w-4 h-4" />
-            Descargar Manager Nativo
-          </a>
+          <HeroInstallButton />
 
           <Link
             href="/admin/login"
@@ -177,115 +172,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {/* ANDROID */}
-          <div className="p-6 tl-card text-left space-y-4 hover:border-emerald-500/40 transition-all">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <Smartphone className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 uppercase">
-                APK Directa
-              </span>
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-white">Android</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Instalador directo APK para smartphones y tablets Android.
-              </p>
-            </div>
-            <div className="pt-2">
-              <a
-                href="/admin/login"
-                className="w-full tl-btn-ghost text-xs justify-center py-2.5 text-emerald-300 hover:text-white hover:bg-emerald-500/20 border-emerald-500/30"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Descargar APK (Android)
-              </a>
-            </div>
-          </div>
-
-          {/* iOS */}
-          <div className="p-6 tl-card text-left space-y-4 hover:border-white/30 transition-all">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 text-white border border-white/20">
-                <Apple className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/20 uppercase">
-                iOS / iPad
-              </span>
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-white">Apple iOS</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Optimizado para iPhone y iPad con soporte para Notificaciones Push.
-              </p>
-            </div>
-            <div className="pt-2">
-              <a
-                href="/admin/login"
-                className="w-full tl-btn-ghost text-xs justify-center py-2.5 text-slate-200 hover:text-white hover:bg-white/10"
-              >
-                <Apple className="w-3.5 h-3.5" />
-                Instalar en iOS
-              </a>
-            </div>
-          </div>
-
-          {/* MACOS */}
-          <div className="p-6 tl-card text-left space-y-4 hover:border-indigo-500/40 transition-all">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                <Laptop className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 uppercase">
-                macOS
-              </span>
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-white">Mac App</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Binario nativo para Apple Silicon (M1/M2/M3/M4) e Intel.
-              </p>
-            </div>
-            <div className="pt-2">
-              <a
-                href="/admin/login"
-                className="w-full tl-btn-ghost text-xs justify-center py-2.5 text-indigo-300 hover:text-white hover:bg-indigo-500/20 border-indigo-500/30"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Descargar DMG (Mac)
-              </a>
-            </div>
-          </div>
-
-          {/* WINDOWS */}
-          <div className="p-6 tl-card text-left space-y-4 hover:border-cyan-500/40 transition-all">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                <Monitor className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 uppercase">
-                Windows
-              </span>
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-white">Windows PC</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Instalador para Windows 10 y 11 con inicio automático en segundo plano.
-              </p>
-            </div>
-            <div className="pt-2">
-              <a
-                href="/admin/login"
-                className="w-full tl-btn-ghost text-xs justify-center py-2.5 text-cyan-300 hover:text-white hover:bg-cyan-500/20 border-cyan-500/30"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Descargar EXE (Windows)
-              </a>
-            </div>
-          </div>
-        </div>
+        <HomeDownloadsSection />
       </section>
 
       {/* CARACTERÍSTICAS CLAVE DEL MANAGER */}
@@ -348,6 +235,14 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center gap-3">
           <TalentoLinkLogo size="sm" showText={true} />
           <p>© {new Date().getFullYear()} TalentoLink Manager · Desarrollado por RENACE TECH</p>
+          <p className="flex items-center gap-3">
+            <Link href="/privacidad" className="hover:text-teal-300">
+              Privacidad
+            </Link>
+            <Link href="/terminos" className="hover:text-teal-300">
+              Términos
+            </Link>
+          </p>
         </div>
       </footer>
     </main>

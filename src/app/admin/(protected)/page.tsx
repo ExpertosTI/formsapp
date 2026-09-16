@@ -32,69 +32,98 @@ export default async function AdminDashboard() {
     ];
 
     return (
-      <div className="max-w-2xl mx-auto">
-        <header className="tl-page-header">
-          <h1 className="tl-page-title">{tenant.name}</h1>
-          <p className="tl-page-sub">Panel de reclutamiento · datos privados de tu empresa</p>
+      <div className="w-full max-w-7xl mx-auto space-y-8">
+        <header className="tl-page-header flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="tl-page-title">{tenant.name}</h1>
+            <p className="tl-page-sub">Panel de reclutamiento · Gestión privada de vacantes y candidatos</p>
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            <Link
+              href={`/forms/${tenant.slug}`}
+              target="_blank"
+              className="tl-btn-primary text-xs py-2 px-4"
+            >
+              Ver mi formulario público →
+            </Link>
+            <Link
+              href="/admin/mi-empresa"
+              className="tl-btn-ghost text-xs py-2 px-4"
+            >
+              Personalizar marca
+            </Link>
+          </div>
         </header>
 
-        <div className="p-4 mb-6 tl-card border-teal-500/15 bg-teal-500/[0.04]">
-          <p className="text-sm text-slate-300">
-            Solo ves las solicitudes enviadas a tu formulario. Nadie más tiene acceso a estos perfiles.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 mb-8 tl-stagger">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 tl-stagger">
           {stats.map((stat) => (
-            <div key={stat.label} className="p-4 text-center tl-card">
-              <stat.icon className="w-5 h-5 mx-auto mb-2 text-teal-400" />
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
-              <p className="mt-1 text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-                {stat.label}
-              </p>
+            <div key={stat.label} className="p-5 tl-card-hover">
+              <div className="flex items-center justify-between mb-2">
+                <stat.icon className="w-5 h-5 text-teal-400" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  {stat.label}
+                </span>
+              </div>
+              <p className="text-3xl font-extrabold text-white">{stat.value}</p>
             </div>
           ))}
         </div>
 
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-white">Recientes</h2>
-            <Link href={`/admin/candidatos?empresa=${tenant.slug}`} className="tl-link">
-              Ver todos →
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-white">Postulaciones Recientes</h2>
+              <p className="text-xs text-slate-400">Últimos candidatos recibidos en tu formulario</p>
+            </div>
+            <Link href={`/admin/candidatos?empresa=${tenant.slug}`} className="tl-link text-xs">
+              Ver todos los candidatos ({tenant._count.submissions}) →
             </Link>
           </div>
-          <div className="space-y-2">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {recentSubmissions.map((sub) => {
               const data = asSubmissionData(sub.data);
               const name = getCandidateName(data);
+              const area = String(data.area_aplicar ?? "General").trim();
               return (
                 <Link
                   key={sub.id}
                   href={`/admin/candidatos/${sub.id}`}
-                  className="flex items-center justify-between p-4 tl-card-hover"
+                  className="flex items-center justify-between p-4 tl-card-hover group"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-teal-500/15 text-sm font-bold text-teal-300 shrink-0">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-teal-500/15 text-teal-300 font-bold text-sm shrink-0 border border-teal-500/20 group-hover:scale-105 transition-transform">
                       {name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-white truncate">{name}</p>
-                      <p className="text-xs text-slate-500 capitalize">{sub.status}</p>
+                      <p className="font-semibold text-white truncate text-sm">{name}</p>
+                      <p className="text-xs text-slate-400 truncate">{area}</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-600 shrink-0 ml-2">
-                    {sub.createdAt.toLocaleDateString("es-DO", { day: "numeric", month: "short" })}
-                  </p>
+                  <div className="text-right shrink-0 ml-3">
+                    <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-white/5 text-slate-300 border border-white/10">
+                      {sub.status}
+                    </span>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      {sub.createdAt.toLocaleDateString("es-DO", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
                 </Link>
               );
             })}
             {recentSubmissions.length === 0 && (
-              <div className="p-8 text-center tl-card">
-                <UserPlus className="w-8 h-8 mx-auto mb-2 text-slate-600" />
-                <p className="text-sm text-slate-400">Aún no hay solicitudes</p>
-                <Link href={`/forms/${tenant.slug}`} className="inline-block mt-3 tl-link">
-                  Ver mi formulario →
-                </Link>
+              <div className="col-span-full p-10 text-center tl-card space-y-3">
+                <UserPlus className="w-10 h-10 mx-auto text-slate-600" />
+                <p className="text-sm text-slate-300 font-medium">Aún no has recibido solicitudes</p>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Comparte el enlace de tu formulario con candidatos para empezar a recibir postulaciones.
+                </p>
+                <div className="pt-2">
+                  <Link href={`/forms/${tenant.slug}`} target="_blank" className="tl-link text-xs">
+                    Abrir mi formulario público →
+                  </Link>
+                </div>
               </div>
             )}
           </div>

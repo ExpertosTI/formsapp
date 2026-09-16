@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Phone, MessageCircle, Send, Check, X, Sparkles } from "lucide-react";
 import { normalizeEvoPhone, whatsAppClickUrl } from "@/lib/notifications/phone";
+import { hapticImpact } from "@/lib/native/open-doc";
 
 interface Props {
   candidateName: string;
@@ -38,6 +39,7 @@ export function CandidateQuickActions({
 
   async function handleSendWhatsApp() {
     setSending(true);
+    void hapticImpact("medium");
     try {
       const res = await fetch("/api/whatsapp/connect", {
         method: "POST",

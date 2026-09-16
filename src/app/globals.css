@@ -19,6 +19,9 @@
   html {
     scroll-behavior: smooth;
   }
+  html.tl-native body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
   body {
     @apply antialiased;
     color: var(--tl-text);

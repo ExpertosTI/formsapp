@@ -3,17 +3,23 @@ import path from "path";
 import { prisma } from "@/lib/prisma";
 import { asSubmissionFiles, DELETABLE_STATUSES } from "@/lib/candidate";
 
-const UPLOADS = path.join(process.cwd(), "public", "uploads");
+const UPLOADS_DIRS = [
+  path.join(process.cwd(), "public", "uploads"),
+  path.join(process.cwd(), "uploads"),
+];
 
 export function deleteSubmissionFiles(files: unknown) {
   const map = asSubmissionFiles(files);
   for (const filename of Object.values(map)) {
     if (!filename || filename.startsWith("http")) continue;
-    const dest = path.join(UPLOADS, path.basename(filename));
-    try {
-      if (fs.existsSync(dest)) fs.unlinkSync(dest);
-    } catch {
-      // ignore missing files
+    const base = path.basename(filename);
+    for (const dir of UPLOADS_DIRS) {
+      const dest = path.join(dir, base);
+      try {
+        if (fs.existsSync(dest)) fs.unlinkSync(dest);
+      } catch {
+        // ignore missing files
+      }
     }
   }
 }

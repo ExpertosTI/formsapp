@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { hapticImpact } from "@/lib/native/open-doc";
 
 interface Props {
   submissionId: string;
@@ -27,6 +28,7 @@ export function FavoriteButton({ submissionId, isFavorite, className }: Props) {
       });
       if (res.ok) {
         setActive(!active);
+        void hapticImpact("medium");
         router.refresh();
       }
     } finally {

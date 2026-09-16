@@ -70,7 +70,7 @@ export function CandidateSearch({
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-3 sm:grid-cols-2 ${lockEmpresa ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
         {!lockEmpresa && (
           <select value={empresa} onChange={(e) => setEmpresa(e.target.value)} className="w-full px-4 py-2.5 text-sm tl-input">
             <option value="">Todas las empresas</option>

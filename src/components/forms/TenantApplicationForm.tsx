@@ -18,6 +18,7 @@ import { FormMaskedInput } from "./FormMaskedInput";
 import { FormMultiSelectCards, FormSelectCards } from "./FormSelectCards";
 import { WorkExperienceFields } from "./WorkExperienceFields";
 import { isWorkExperienceComplete, parseWorkExperience } from "@/lib/work-experience";
+import { NativeFileField } from "@/components/native/NativeFileField";
 
 interface TenantTheme {
   primary: string;
@@ -360,6 +361,30 @@ export function TenantApplicationForm({
     return 3;
   };
 
+  const isFullWidthField = (field: FormSection["fields"][number]): boolean => {
+    if (
+      field.type === "location" ||
+      field.type === "work_experience" ||
+      field.type === "textarea" ||
+      field.type === "multiselect" ||
+      field.type === "file"
+    ) {
+      return true;
+    }
+    if (field.type === "select" && (field.options?.length ?? 0) > 3) {
+      return true;
+    }
+    if (
+      field.key === "direccion" ||
+      field.key === "aporte_empresa" ||
+      field.key === "razon_dejar_empleo" ||
+      field.key === "habilidades"
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="form-card p-6 sm:p-8 animate-tl-fade-in">
       <div className="flex gap-1 mb-2">
@@ -384,17 +409,18 @@ export function TenantApplicationForm({
       </p>
       <h2 className="mb-5 text-lg font-semibold form-title">{current.title}</h2>
 
-      <div className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         {current.fields.map((field) =>
           field.type === "location" ? (
-            <RdLocationFields
-              key={field.key}
-              defaults={locationValues}
-              onFocus={handleFocus}
-              onChange={handleLocationChange}
-            />
+            <div key={field.key} className="col-span-full">
+              <RdLocationFields
+                defaults={locationValues}
+                onFocus={handleFocus}
+                onChange={handleLocationChange}
+              />
+            </div>
           ) : field.type === "work_experience" ? (
-            <div key={field.key}>
+            <div key={field.key} className="col-span-full">
               <div className="form-label-row">
                 {FieldIcon(field.key)}
                 <label className="form-label mb-0">
@@ -413,7 +439,10 @@ export function TenantApplicationForm({
               />
             </div>
           ) : (
-            <div key={field.key}>
+            <div
+              key={field.key}
+              className={isFullWidthField(field) ? "col-span-full" : "col-span-1"}
+            >
               <div className="form-label-row">
                 {FieldIcon(field.key)}
                 <label className="form-label mb-0">
@@ -454,32 +483,25 @@ export function TenantApplicationForm({
                   columns={field.key === "rubros_laborales" ? 2 : 3}
                 />
               ) : field.type === "file" ? (
-                <>
-                  <input
-                    name={field.key}
-                    type="file"
-                    required={field.required && !fileValues[field.key]}
-                    accept={field.accept}
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) {
-                        setFileValues((prev) => ({ ...prev, [field.key]: f }));
-                        setFileMeta((prev) => ({
-                          ...prev,
-                          [field.key]: { name: f.name, size: f.size },
-                        }));
-                      }
-                    }}
-                    onFocus={handleFocus}
-                    className="form-input file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-black/10 file:text-inherit"
-                  />
-                  {(fileValues[field.key] || fileMeta[field.key]) && (
-                    <p className="mt-1.5 text-xs form-muted">
-                      Archivo: {fileValues[field.key]?.name ?? fileMeta[field.key]?.name}
-                      {!fileValues[field.key] && fileMeta[field.key] && " — vuelve a seleccionarlo"}
-                    </p>
-                  )}
-                </>
+                <NativeFileField
+                  name={field.key}
+                  required={field.required && !fileValues[field.key]}
+                  accept={field.accept}
+                  fileName={
+                    fileValues[field.key]?.name ??
+                    (fileMeta[field.key]
+                      ? `${fileMeta[field.key]?.name}${!fileValues[field.key] ? " — vuelve a seleccionarlo" : ""}`
+                      : undefined)
+                  }
+                  onFile={(f) => {
+                    setFileValues((prev) => ({ ...prev, [field.key]: f }));
+                    setFileMeta((prev) => ({
+                      ...prev,
+                      [field.key]: { name: f.name, size: f.size },
+                    }));
+                  }}
+                  onFocus={handleFocus}
+                />
               ) : maskForField(field.key) ? (
                 <FormMaskedInput
                   fieldKey={field.key}

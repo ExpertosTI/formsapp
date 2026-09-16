@@ -4,6 +4,7 @@ import { FileText, ImageIcon } from "lucide-react";
 import { getCvFilename, getPhotoFilename, isImageFilename, isPdfFilename } from "@/lib/candidate";
 import type { SubmissionFiles } from "@/lib/candidate";
 import { uploadUrl } from "@/lib/files";
+import { hapticImpact, openDoc } from "@/lib/native/open-doc";
 
 interface Props {
   files: SubmissionFiles;
@@ -18,7 +19,11 @@ export function FileThumbnails({ files, tenantSlug }: Props) {
   function openFile(e: React.MouseEvent, filename: string) {
     e.preventDefault();
     e.stopPropagation();
-    window.open(uploadUrl(filename, tenantSlug), "_blank", "noopener,noreferrer");
+    const url = uploadUrl(filename, tenantSlug);
+    void hapticImpact("light");
+    void openDoc(url, { filename }).catch(() => {
+      window.open(url, "_blank", "noopener,noreferrer");
+    });
   }
 
   return (

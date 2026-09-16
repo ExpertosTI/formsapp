@@ -26,6 +26,7 @@ const navSuper = [
 ];
 
 const navTenant = (slug: string) => [
+  { href: "/admin", label: "Inicio", icon: LayoutDashboard, exact: true as const },
   { href: `/admin/candidatos?empresa=${slug}`, label: "Mis candidatos", icon: Users, exact: false as const },
   { href: "/admin/entrevistas", label: "Entrevistas", icon: CalendarDays, exact: false as const },
   { href: `/admin/estadisticas?empresa=${slug}`, label: "Estadísticas", icon: BarChart3, exact: false as const },

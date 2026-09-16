@@ -3,7 +3,8 @@ import fs from "fs";
 import path from "path";
 
 const ECOFAST = process.env.ECOFAST_BASE || "/var/www/ecofast";
-const UPLOADS = path.join(process.cwd(), "public", "uploads");
+const UPLOADS_PUBLIC = path.join(process.cwd(), "public", "uploads");
+const UPLOADS_ROOT = path.join(process.cwd(), "uploads");
 
 export async function GET(
   _req: NextRequest,
@@ -11,10 +12,15 @@ export async function GET(
 ) {
   const { tenant, path: segments } = await params;
   const filename = segments.map(decodeURIComponent).join("/");
+  const safeFilename = path.basename(filename);
 
   const candidates = [
-    path.join(UPLOADS, filename),
+    path.join(UPLOADS_PUBLIC, filename),
+    path.join(UPLOADS_ROOT, filename),
+    path.join(UPLOADS_PUBLIC, safeFilename),
+    path.join(UPLOADS_ROOT, safeFilename),
     path.join(ECOFAST, "tenants", tenant, "uploads", filename),
+    path.join(ECOFAST, "tenants", tenant, "uploads", safeFilename),
   ];
 
   for (const filePath of candidates) {

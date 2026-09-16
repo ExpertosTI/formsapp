@@ -83,7 +83,7 @@ export function TenantFormExperience({
       </header>
 
       <main className="flex flex-col items-center flex-1 px-4 py-8 sm:py-10 tl-page-enter">
-        <div className="w-full max-w-2xl text-center mb-6">
+        <div className="w-full max-w-3xl lg:max-w-4xl text-center mb-6">
           <TenantBrandLogo
             name={tenantName}
             logo={logo}
@@ -97,7 +97,7 @@ export function TenantFormExperience({
           <p className="mt-1.5 text-sm form-muted">Bolsa de Empleo y Solicitudes de Personal</p>
         </div>
 
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-3xl lg:max-w-4xl">
           {!started ? (
             <IntroAndPositionsCard
               tenantName={tenantName}

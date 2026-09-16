@@ -43,7 +43,7 @@ export function RdLocationFields({ defaults, onFocus, onChange }: Props) {
   }, [provincia, ciudad, sector, direccion, onChange]);
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label className="form-label">Provincia *</label>
         <select

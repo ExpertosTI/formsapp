@@ -22,7 +22,7 @@ export function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/admin/login", req.url));
     }
 
-    if (tenantSlug && (pathname.startsWith("/admin/empresas") || pathname === "/admin")) {
+    if (tenantSlug && pathname.startsWith("/admin/empresas")) {
       return NextResponse.redirect(new URL(`/admin/candidatos?empresa=${tenantSlug}`, req.url));
     }
   }

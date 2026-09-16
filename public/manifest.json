@@ -1,25 +1,52 @@
 {
+  "id": "/admin",
   "name": "TalentoLink — Gestor de RRHH y Vacantes",
   "short_name": "TalentoLink",
   "description": "Gestor inteligente de candidatos, vacantes abiertas, alertas en tiempo real por WhatsApp y radar de postulaciones.",
   "start_url": "/admin",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
+  "background_color": "#070b14",
   "theme_color": "#2dd4bf",
-  "orientation": "portrait",
+  "orientation": "any",
+  "categories": [
+    "business",
+    "productivity",
+    "utilities"
+  ],
+  "lang": "es",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/branding/talentolink-logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/branding/talentolink-logo.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/branding/talentolink-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/branding/talentolink-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [

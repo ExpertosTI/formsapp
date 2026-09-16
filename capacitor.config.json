@@ -1,0 +1,29 @@
+{
+  "appId": "tech.renace.talentolink",
+  "appName": "TalentoLink",
+  "webDir": "out",
+  "server": {
+    "url": "https://forms.renace.tech/admin",
+    "androidScheme": "https",
+    "cleartext": false,
+    "allowNavigation": ["forms.renace.tech", "evoapi.renace.tech", "*.renace.tech"]
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "backgroundColor": "#070b14",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#070b14"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_launcher",
+      "iconColor": "#2dd4bf"
+    }
+  }
+}

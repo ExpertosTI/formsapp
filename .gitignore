@@ -7,4 +7,14 @@ tsconfig.tsbuildinfo
 .env
 .env.local
 .env.production
+.env.android
 public/uploads/
+android/app/build/
+android/key.properties
+android/*.jks
+android/*.keystore
+android-release/*.aab
+*.aab
+ios/App/Pods/
+ios/App/build/
+out/

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { NativeBridge } from "@/components/native/NativeBridge";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -8,11 +9,11 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#2dd4bf",
+  themeColor: "#070b14",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -42,6 +43,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className={`${jakarta.variable} font-sans antialiased`}>
+        <NativeBridge />
         {children}
         <script
           dangerouslySetInnerHTML={{
