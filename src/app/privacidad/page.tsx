@@ -41,7 +41,9 @@ export default function PrivacidadPage() {
             <li>Archivos: guardar y abrir currículums en el teléfono.</li>
             <li>Notificaciones: avisos de nuevas postulaciones si la empresa las activa.</li>
           </ul>
-          <h2 className="text-lg font-semibold text-white pt-4">Eliminar cuenta y datos</h2>
+          <h2 id="eliminar-cuenta" className="text-lg font-semibold text-white pt-4 scroll-mt-8">
+            Eliminar cuenta y datos
+          </h2>
           <p>
             Para pedir el borrado de tu cuenta de empresa o de los datos asociados, escribe a{" "}
             <a className="text-teal-300 underline" href="mailto:hola@renace.tech?subject=Eliminar%20cuenta%20TalentoLink">

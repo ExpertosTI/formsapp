@@ -50,9 +50,9 @@ Instrucciones cortas para el equipo:
 - Prueba interna: **activa** — v3 (2.4.1) · VERIFICATO
 - Enlace: https://play.google.com/apps/internaltest/4701241276209936649
 - Hecho en Console: ficha, anuncios, acceso (admin), gobierno/finanzas/salud, público 18+, IARC (Everyone/PEGI 3), Seguridad de datos (borrador)
-- Bloqueo: `https://forms.renace.tech/privacidad` sigue **404** (SSH al VPS sin clave autorizada desde este Mac)
-- Temporal HTML: `store/privacidad.html` + gist https://gist.github.com/ExpertosTI/022e616469a0dc3e211aaad760c065bd
-- Enviar a revisión sigue bloqueado hasta que la URL de privacidad responda 200 en el dominio
+- Desplegado: `/privacidad` y `/terminos` responden **200** en https://forms.renace.tech (commit fde8941+)
+- URLs Play: privacidad `https://forms.renace.tech/privacidad` · borrado `https://forms.renace.tech/privacidad#eliminar-cuenta` · términos `https://forms.renace.tech/terminos`
+- Pendiente en Console: pegar esas URLs (quitar gist), guardar Data Safety si falta, **Enviar a revisión**
 
 ## Assets
 
@@ -95,6 +95,6 @@ Verificar: `curl -sI https://forms.renace.tech/privacidad` → debe ser **200**.
 
 ### Pendiente
 
-1. Desplegar `/privacidad` y `/terminos` (este Mac no tiene clave SSH autorizada en el VPS)
+1. Redeploy si hace falta el ancla `#eliminar-cuenta` (fix en `src/app/privacidad/page.tsx`)
 2. Enviar ficha a revisión (quita el nombre temporal)
 3. Luego: prueba cerrada
