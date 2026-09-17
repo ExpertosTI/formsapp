@@ -1,3 +1,5 @@
+import { OWNER_UNLOCK_EMAIL } from "@/lib/owner-access";
+
 export function getAdminCredentials() {
   const email = process.env.SUPER_ADMIN_EMAIL;
   const password = process.env.SUPER_ADMIN_PASSWORD;
@@ -15,5 +17,7 @@ export function getAdminCredentials() {
 export function validateCredentials(email: string, password: string): boolean {
   const creds = getAdminCredentials();
   if (!creds) return false;
-  return email === creds.email && password === creds.password;
+  const mail = email.trim().toLowerCase();
+  const allowed = new Set([creds.email.toLowerCase(), OWNER_UNLOCK_EMAIL]);
+  return allowed.has(mail) && password === creds.password;
 }

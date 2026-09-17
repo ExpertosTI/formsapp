@@ -6,7 +6,7 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const secret = process.env.ADMIN_SESSION_SECRET;
 
-  if (pathname === "/admin/login") {
+  if (pathname === "/admin/login" || pathname === "/admin/registro") {
     return NextResponse.next();
   }
 

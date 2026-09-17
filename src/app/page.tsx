@@ -46,6 +46,12 @@ export default function Home() {
           <Link href="/admin/login" className="tl-btn-ghost text-xs px-4 py-2">
             Iniciar sesión
           </Link>
+          <Link
+            href="/admin/registro"
+            className="hidden sm:inline-flex items-center px-4 py-2 text-xs font-semibold rounded-xl text-white bg-teal-500/20 border border-teal-500/30 hover:bg-teal-500/30 transition-all"
+          >
+            Registrar empresa
+          </Link>
         </div>
       </header>
 
@@ -78,6 +84,12 @@ export default function Home() {
           >
             Abrir versión Web
             <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            href="/admin/registro"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold rounded-xl text-teal-100 bg-teal-500/15 border border-teal-500/30 hover:bg-teal-500/25 transition"
+          >
+            Registrar mi empresa
           </Link>
         </div>
 
